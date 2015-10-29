@@ -28,6 +28,8 @@ button:hover { color: black; background: rgba(255,255,255,1); }
 	display: none;
 }
 
+.video-js .vjs-tech { object-fit: cover }
+
 /* Spinner */
 .sk-circle {
   margin: 100px auto;

@@ -46,18 +46,22 @@
 
 	'use strict';
 
+	var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 	var React = __webpack_require__(1);
 	var ReactDOM = __webpack_require__(157);
 	var Flux = __webpack_require__(158);
 	var update = __webpack_require__(161);
 	var videojs = __webpack_require__(163);
+	var screenfull = __webpack_require__(164);
 
 	var dispatcher = new Flux.Dispatcher();
 
 	var STATE_IDLE = 0,
 	    STATE_BEGINNING = 1,
 	    STATE_PLAYING = 2,
-	    STATE_WIN = 3;
+	    STATE_WIN = 3,
+	    STATE_LOSE = 4;
 
 	var App = React.createClass({
 		displayName: 'App',
@@ -68,13 +72,13 @@
 				'div',
 				null,
 				React.createElement(App.Audio, { ref: 'audio' }),
-				React.createElement(App.Content, { ref: 'content', step: this.state.step }),
-				React.createElement(App.Overlay, { ref: 'overlay', step: this.state.step }),
+				React.createElement(App.Content, _extends({ ref: 'content' }, this.state)),
+				React.createElement(App.Overlay, _extends({ ref: 'overlay' }, this.state)),
 				React.createElement(App.LoadingScreen, { loaded: loaded })
 			);
 		},
 		getInitialState: function getInitialState() {
-			return { loaded: false, step: 'main-page' };
+			return { loaded: false, step: '', showInner: false, showScreamNow: false };
 		},
 		componentDidMount: function componentDidMount() {
 			this.listenerID = dispatcher.register((function (payload) {
@@ -88,8 +92,22 @@
 					case 'videoLoaded':
 						this.setState({ loaded: true });
 						break;
+					case 'showScreamNow':
+						this.setState({ showScreamNow: true });
+						break;
+					case 'hideScreamNow':
+						this.setState({ showScreamNow: false });
+						break;
 				}
 			}).bind(this));
+
+			window.setTimeout((function () {
+				this.setState({ step: 'mainpage' });
+			}).bind(this), 1000);
+
+			window.setTimeout((function () {
+				this.setState({ showInner: true });
+			}).bind(this), 2000);
 		},
 		componentWillUnmount: function componentWillUnmount() {
 			dispatcher.unregister(this.listenerID);
@@ -121,6 +139,7 @@
 				{ style: this.styles.container },
 				React.createElement(App.Content.MainPage, this.props),
 				React.createElement(App.Content.Instruction, this.props),
+				React.createElement(App.Content.Fade, this.props),
 				React.createElement(App.Content.Game, this.props),
 				React.createElement(App.Content.End, this.props)
 			);
@@ -143,25 +162,13 @@
 		displayName: 'MainPage',
 
 		render: function render() {
+			var showInner = this.props.showInner;
 			return React.createElement(
 				'div',
-				{ style: m(this.styles.container, this.props.step == 'main-page' && this.styles.show) },
+				{ style: m(this.styles.container, this.props.step == 'mainpage' && this.styles.show) },
 				React.createElement(
 					'div',
-					{ className: 'valign-container', style: this.styles.inner },
-					React.createElement(
-						'div',
-						{ className: 'valign-top' },
-						React.createElement(
-							'h2',
-							null,
-							'THE SCREAM SAVER'
-						)
-					)
-				),
-				React.createElement(
-					'div',
-					{ className: 'valign-container', style: this.styles.inner },
+					{ className: 'valign-container', style: m(this.styles.inner, showInner && this.styles.showInner) },
 					React.createElement(
 						'div',
 						{ className: 'valign-top text-center' },
@@ -176,7 +183,7 @@
 				),
 				React.createElement(
 					'div',
-					{ className: 'valign-container', style: this.styles.inner },
+					{ className: 'valign-container', style: m(this.styles.inner, showInner && this.styles.showInner) },
 					React.createElement(
 						'div',
 						{ className: 'valign text-center' },
@@ -194,7 +201,7 @@
 				),
 				React.createElement(
 					'div',
-					{ className: 'valign-container', style: this.styles.inner },
+					{ className: 'valign-container', style: m(this.styles.inner, showInner && this.styles.showInner) },
 					React.createElement(
 						'div',
 						{ className: 'valign-bottom text-center' },
@@ -217,18 +224,24 @@
 				position: 'absolute',
 				width: '100%',
 				height: '100%',
+				transition: 'opacity 1s',
 				opacity: 0,
-				transition: 'opacity .2s',
-				pointerEvents: 'none'
+				pointerEvents: 'none',
+				background: 'url(home.jpg) center / cover'
 			},
 			inner: {
 				position: 'absolute',
 				width: '100%',
-				height: '100%'
+				height: '100%',
+				opacity: 0,
+				transition: 'opacity 2s'
 			},
 			show: {
 				opacity: 1,
 				pointerEvents: 'auto'
+			},
+			showInner: {
+				opacity: 1
 			}
 		},
 		handleStart: function handleStart(event) {
@@ -244,19 +257,6 @@
 			return React.createElement(
 				'div',
 				{ style: m(this.styles.container, this.props.step == 'instruction' && this.styles.show) },
-				React.createElement(
-					'div',
-					{ className: 'valign-container', style: this.styles.inner },
-					React.createElement(
-						'div',
-						{ className: 'valign-top' },
-						React.createElement(
-							'h2',
-							null,
-							'THE SCREAM SAVER'
-						)
-					)
-				),
 				React.createElement(
 					'div',
 					{ className: 'valign-container', style: this.styles.inner },
@@ -291,8 +291,9 @@
 				width: '100%',
 				height: '100%',
 				opacity: 0,
-				transition: 'opacity .2s',
-				pointerEvents: 'none'
+				transition: 'opacity .2s, background .2s',
+				pointerEvents: 'none',
+				background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(home.jpg) center / cover'
 			},
 			inner: {
 				position: 'absolute',
@@ -305,7 +306,34 @@
 			}
 		},
 		handleGo: function handleGo() {
-			dispatcher.dispatch({ type: 'goto', step: 'game' });
+			dispatcher.dispatch({ type: 'goto', step: 'fade' });
+		}
+	});
+
+	App.Content.Fade = React.createClass({
+		displayName: 'Fade',
+
+		render: function render() {
+			return React.createElement('div', { style: m(this.styles.container, this.props.step == 'fade' && this.styles.show) });
+		},
+		styles: {
+			container: {
+				background: 'black',
+				opacity: 0,
+				transition: 'opacity 1s'
+			},
+			show: {
+				opacity: 1
+			}
+		},
+		componentDidUpdate: function componentDidUpdate() {
+			if (this.props.step == 'fade') {
+				this.timeoutID = window.setTimeout((function () {
+					dispatcher.dispatch({ type: 'goto', step: 'game' });
+				}).bind(this), 1000);
+			} else {
+				window.clearTimeout(this.timeoutID);
+			}
 		}
 	});
 
@@ -313,6 +341,7 @@
 		displayName: 'Game',
 
 		render: function render() {
+			var showScreamNow = this.props.showScreamNow;
 			return React.createElement(
 				'div',
 				{ style: m(this.styles.container, this.props.step == 'game' && this.styles.show) },
@@ -325,14 +354,14 @@
 				),
 				React.createElement(
 					'div',
-					{ className: 'valign-container', style: this.styles.inner },
+					{ className: 'valign-container', style: m(this.styles.screamNow, showScreamNow && this.styles.showScreamNow) },
 					React.createElement(
 						'div',
 						{ className: 'valign-top' },
 						React.createElement(
 							'h2',
 							null,
-							'THE SCREAM SAVER'
+							'Scream Now!'
 						)
 					)
 				)
@@ -355,7 +384,16 @@
 				width: '100%',
 				height: '100%'
 			},
+			screamNow: {
+				position: 'absolute',
+				width: '100%',
+				height: '100%',
+				opacity: 0
+			},
 			show: {
+				opacity: 1
+			},
+			showScreamNow: {
 				opacity: 1
 			}
 		},
@@ -392,7 +430,7 @@
 			if (storedSensitivity) {
 				//this.sensitivity = storedSensitivity;
 				//this.refs.settings.sensitivity((this.sensitivity * 100).toFixed(0));
-				this.sensitivity = 0.04;
+				this.sensitivity = 0.6;
 			}
 			if (storedSpeed) {
 				//this.speed = storedSpeed;
@@ -481,6 +519,7 @@
 						this.video.currentTime(nextTime);
 						if (this.video.currentTime() > 5) {
 							this.setState({ game: STATE_PLAYING });
+							dispatcher.dispatch({ type: 'showScreamNow' });
 						}
 						break;
 					case STATE_PLAYING:
@@ -493,37 +532,55 @@
 						avg /= this.bufferLength;
 
 						var currentTime = this.video.currentTime();
-						if (avg > 0.1) {
+						if (currentTime > 5) {
+							dispatcher.dispatch({ type: 'showScreamNow' });
+						} else {
+							dispatcher.dispatch({ type: 'hideScreamNow' });
+						}
+
+						if (avg > this.sensitivity) {
 							this.video.currentTime(currentTime - 0.033);
 						} else {
 							this.video.currentTime(currentTime + 0.033);
 						}
 
 						if (currentTime < 3.5) {
-							console.log('win');
 							this.video.currentTime(13.98);
 							this.setState({ game: STATE_WIN });
+							dispatcher.dispatch({ type: 'hideScreamNow' });
 						} else if (currentTime >= 13.92) {
-							console.log('lose');
-							dispatcher.dispatch({ type: 'goto', step: 'lose' });
-							this.setState({ game: STATE_IDLE });
-							this.video.currentTime(0);
+							this.video.currentTime(17.133);
+							this.setState({ game: STATE_LOSE });
+							dispatcher.dispatch({ type: 'hideScreamNow' });
 						}
 						break;
 					case STATE_WIN:
-						this.video.currentTime(this.video.currentTime() + 0.033);
-						if (this.video.currentTime() >= this.video.duration()) {
+						this.video.currentTime(this.video.currentTime() + this.fpsIntervalMS);
+						if (this.video.currentTime() >= 17) {
+							window.setTimeout((function () {
+								this.video.currentTime(0);
+							}).bind(this), 100);
 							dispatcher.dispatch({ type: 'goto', step: 'win' });
 							this.setState({ game: STATE_IDLE });
-							this.video.currentTime(0);
+						}
+						break;
+					case STATE_LOSE:
+						this.video.currentTime(this.video.currentTime() + this.fpsIntervalMS);
+						if (this.video.currentTime() >= this.video.duration()) {
+							window.setTimeout((function () {
+								this.video.currentTime(0);
+							}).bind(this), 100);
+							dispatcher.dispatch({ type: 'goto', step: 'lose' });
+							this.setState({ game: STATE_IDLE });
 						}
 						break;
 				}
 			}
 		},
 		start: function start() {
-			this.fps = 30;
+			this.fps = 25;
 			this.fpsInterval = 1000 / this.fps;
+			this.fpsIntervalMS = 1 / this.fps;
 			this.then = Date.now();
 			this.startTime = this.then;
 			this.draw();
@@ -604,10 +661,10 @@
 			var showShare = this.state.showShare;
 			return React.createElement(
 				'div',
-				{ className: 'no-pointer-events', style: this.styles.container },
+				{ className: 'no-pointer-events', style: m(this.styles.container, this.props.showInner && this.styles.show) },
 				React.createElement(
 					'div',
-					{ className: 'valign-container', style: m(this.styles.container, this.styles.credits, showCredits && this.styles.showCredits) },
+					{ className: 'valign-container', style: m(this.styles.inner, this.styles.credits, showCredits && this.styles.showCredits) },
 					React.createElement(
 						'div',
 						{ className: 'valign text-center' },
@@ -652,7 +709,7 @@
 				),
 				React.createElement(
 					'div',
-					{ className: 'valign-container', style: m(this.styles.container, this.styles.credits, showShare && this.styles.showCredits) },
+					{ className: 'valign-container', style: m(this.styles.inner, this.styles.credits, showShare && this.styles.showCredits) },
 					React.createElement(
 						'div',
 						{ className: 'valign text-center' },
@@ -679,20 +736,20 @@
 				),
 				React.createElement(
 					'div',
-					{ style: this.styles.container, className: 'valign-container' },
+					{ style: this.styles.inner, className: 'valign-container' },
 					React.createElement(
 						'div',
 						{ className: 'valign-bottom text-left' },
 						React.createElement(
 							'button',
-							{ className: 'pointer-events', onClick: this.handleCredits },
+							{ className: 'pointer-events', style: m(this.styles.creditsButton, (this.props.step == 'win' || this.props.step == 'lose') && this.styles.showCreditsButton), onClick: this.handleCredits },
 							'Credits'
 						)
 					)
 				),
 				React.createElement(
 					'div',
-					{ style: this.styles.container, className: 'valign-container' },
+					{ style: this.styles.inner, className: 'valign-container' },
 					React.createElement(
 						'div',
 						{ className: 'valign-bottom text-right' },
@@ -705,11 +762,16 @@
 				),
 				React.createElement(
 					'div',
-					{ style: this.styles.container, className: 'text-right' },
+					{ style: this.styles.inner, className: 'text-right' },
 					React.createElement(
 						'button',
 						{ className: 'pointer-events', onClick: this.handleFullscreen },
 						this.state.fullscreen ? 'Exit Fullscreen' : 'Fullscreen'
+					),
+					React.createElement(
+						'button',
+						{ className: 'pointer-events', onClick: this.handleAudio },
+						this.state.audio ? 'Audio On' : 'Audio Off'
 					)
 				)
 			);
@@ -719,24 +781,42 @@
 				position: 'absolute',
 				width: '100%',
 				height: '100%',
-				pointerEvents: 'none'
+				pointerEvents: 'none',
+				transition: 'opacity .2s',
+				opacity: 0
+			},
+			inner: {
+				position: 'absolute',
+				width: '100%',
+				height: '100%'
+			},
+			show: {
+				opacity: 1
 			},
 			credits: {
 				display: 'none',
 				background: 'black',
+				transition: 'opacity .3s',
+				opacity: 0
+			},
+			creditsButton: {
 				opacity: 0,
-				transition: 'opacity .3s'
+				pointerEvents: 'none'
 			},
 			showCredits: {
 				display: 'table',
 				opacity: 1
+			},
+			showCreditsButton: {
+				opacity: 1,
+				pointerEvents: 'auto'
 			},
 			closeCredits: {
 				pointerEvents: 'none'
 			}
 		},
 		getInitialState: function getInitialState() {
-			return { showCredits: false, showShare: false, fullscreen: false };
+			return { showCredits: false, showShare: false, fullscreen: false, audio: true };
 		},
 		componentDidMount: function componentDidMount() {
 			this.listenerID = dispatcher.register((function (payload) {
@@ -771,6 +851,10 @@
 		},
 		handleCloseShare: function handleCloseShare(evt) {
 			this.setState({ showShare: false });
+		},
+		handleAudio: function handleAudio(evt) {
+			var audio = this.state.audio;
+			this.setState({ audio: !audio });
 		}
 	});
 
@@ -785,30 +869,26 @@
 					'div',
 					null,
 					React.createElement(
-						'div',
-						null,
-						React.createElement(
-							'label',
-							{ style: this.styles.label },
-							'Threshold'
-						),
-						React.createElement('input', { style: this.styles.input, ref: 'sensitivity', type: 'range', onChange: this.handleSensitivity })
+						'label',
+						{ style: this.styles.label },
+						'Threshold'
 					),
+					React.createElement('input', { style: this.styles.input, ref: 'sensitivity', type: 'range', onChange: this.handleSensitivity })
+				),
+				React.createElement(
+					'div',
+					null,
 					React.createElement(
-						'div',
-						null,
-						React.createElement(
-							'label',
-							{ style: this.styles.label },
-							'Speed'
-						),
-						React.createElement('input', { style: this.styles.input, ref: 'speed', type: 'range', onChange: this.handleSpeed })
+						'label',
+						{ style: this.styles.label },
+						'Speed'
 					),
-					React.createElement(
-						'button',
-						{ onClick: this.handleClose, style: this.styles.close },
-						'Close'
-					)
+					React.createElement('input', { style: this.styles.input, ref: 'speed', type: 'range', onChange: this.handleSpeed })
+				),
+				React.createElement(
+					'button',
+					{ onClick: this.handleClose, style: this.styles.close },
+					'Close'
 				)
 			);
 		},
@@ -935,14 +1015,7 @@
 	<div style={this.styles.container}>
 	<button onClick={this.handleSettings}>Settings</button>
 	</div>
-	*/ /*
-	   <div style={this.styles.container} className='valign-container'>
-	   <div className='valign-bottom text-center'>
-	   	<a href='https://twitter.com/share' className='twitter-share-button' data-url='http://reykjavik.bbhmakerlab.io' data-text='Hello, World!'>Tweet</a>
-	   	<div className='fb-share-button' data-href='http://reykjavik.bbhmakerlab.io' data-layout='button_count'></div>
-	   </div>
-	   </div>
-	   */
+	*/
 
 /***/ },
 /* 1 */
@@ -40695,6 +40768,157 @@
 	}(this, (this.vttjs || {})));
 
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ },
+/* 164 */
+/***/ function(module, exports) {
+
+	/*!
+	* screenfull
+	* v2.0.0 - 2014-12-22
+	* (c) Sindre Sorhus; MIT License
+	*/
+	(function () {
+		'use strict';
+
+		var isCommonjs = typeof module !== 'undefined' && module.exports;
+		var keyboardAllowed = typeof Element !== 'undefined' && 'ALLOW_KEYBOARD_INPUT' in Element;
+
+		var fn = (function () {
+			var val;
+			var valLength;
+
+			var fnMap = [
+				[
+					'requestFullscreen',
+					'exitFullscreen',
+					'fullscreenElement',
+					'fullscreenEnabled',
+					'fullscreenchange',
+					'fullscreenerror'
+				],
+				// new WebKit
+				[
+					'webkitRequestFullscreen',
+					'webkitExitFullscreen',
+					'webkitFullscreenElement',
+					'webkitFullscreenEnabled',
+					'webkitfullscreenchange',
+					'webkitfullscreenerror'
+
+				],
+				// old WebKit (Safari 5.1)
+				[
+					'webkitRequestFullScreen',
+					'webkitCancelFullScreen',
+					'webkitCurrentFullScreenElement',
+					'webkitCancelFullScreen',
+					'webkitfullscreenchange',
+					'webkitfullscreenerror'
+
+				],
+				[
+					'mozRequestFullScreen',
+					'mozCancelFullScreen',
+					'mozFullScreenElement',
+					'mozFullScreenEnabled',
+					'mozfullscreenchange',
+					'mozfullscreenerror'
+				],
+				[
+					'msRequestFullscreen',
+					'msExitFullscreen',
+					'msFullscreenElement',
+					'msFullscreenEnabled',
+					'MSFullscreenChange',
+					'MSFullscreenError'
+				]
+			];
+
+			var i = 0;
+			var l = fnMap.length;
+			var ret = {};
+
+			for (; i < l; i++) {
+				val = fnMap[i];
+				if (val && val[1] in document) {
+					for (i = 0, valLength = val.length; i < valLength; i++) {
+						ret[fnMap[0][i]] = val[i];
+					}
+					return ret;
+				}
+			}
+
+			return false;
+		})();
+
+		var screenfull = {
+			request: function (elem) {
+				var request = fn.requestFullscreen;
+
+				elem = elem || document.documentElement;
+
+				// Work around Safari 5.1 bug: reports support for
+				// keyboard in fullscreen even though it doesn't.
+				// Browser sniffing, since the alternative with
+				// setTimeout is even worse.
+				if (/5\.1[\.\d]* Safari/.test(navigator.userAgent)) {
+					elem[request]();
+				} else {
+					elem[request](keyboardAllowed && Element.ALLOW_KEYBOARD_INPUT);
+				}
+			},
+			exit: function () {
+				document[fn.exitFullscreen]();
+			},
+			toggle: function (elem) {
+				if (this.isFullscreen) {
+					this.exit();
+				} else {
+					this.request(elem);
+				}
+			},
+			raw: fn
+		};
+
+		if (!fn) {
+			if (isCommonjs) {
+				module.exports = false;
+			} else {
+				window.screenfull = false;
+			}
+
+			return;
+		}
+
+		Object.defineProperties(screenfull, {
+			isFullscreen: {
+				get: function () {
+					return !!document[fn.fullscreenElement];
+				}
+			},
+			element: {
+				enumerable: true,
+				get: function () {
+					return document[fn.fullscreenElement];
+				}
+			},
+			enabled: {
+				enumerable: true,
+				get: function () {
+					// Coerce to boolean in case of old WebKit
+					return !!document[fn.fullscreenEnabled];
+				}
+			}
+		});
+
+		if (isCommonjs) {
+			module.exports = screenfull;
+		} else {
+			window.screenfull = screenfull;
+		}
+	})();
+
 
 /***/ }
 /******/ ]);

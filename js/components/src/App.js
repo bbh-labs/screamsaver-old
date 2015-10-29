@@ -10,7 +10,8 @@ var dispatcher = new Flux.Dispatcher();
 var STATE_IDLE = 0,
     STATE_BEGINNING = 1,
     STATE_PLAYING   = 2,
-    STATE_WIN = 3;
+    STATE_WIN = 3,
+    STATE_LOSE = 4;
 
 var App = React.createClass({
 	render: function() {
@@ -18,14 +19,14 @@ var App = React.createClass({
 		return (
 			<div>
 				<App.Audio ref='audio' />
-				<App.Content ref='content' step={this.state.step} />
-				<App.Overlay ref='overlay' step={this.state.step} />
+				<App.Content ref='content' {...this.state} />
+				<App.Overlay ref='overlay' {...this.state} />
 				<App.LoadingScreen loaded={loaded} />
 			</div>
 		)
 	},
 	getInitialState: function() {
-		return { loaded: false, step: 'main-page' };
+		return { loaded: false, step: '', showInner: false, showScreamNow: false };
 	},
 	componentDidMount: function() {
 		this.listenerID = dispatcher.register(function(payload) {
@@ -39,8 +40,22 @@ var App = React.createClass({
 			case 'videoLoaded':
 				this.setState({ loaded: true });
 				break;
+			case 'showScreamNow':
+				this.setState({ showScreamNow: true });
+				break;
+			case 'hideScreamNow':
+				this.setState({ showScreamNow: false });
+				break;
 			}
 		}.bind(this));
+
+		window.setTimeout(function() {
+			this.setState({ step: 'mainpage' });
+		}.bind(this), 1000);
+
+		window.setTimeout(function() {
+			this.setState({ showInner: true });
+		}.bind(this), 2000);
 	},
 	componentWillUnmount: function() {
 		dispatcher.unregister(this.listenerID);
@@ -67,6 +82,7 @@ App.Content = React.createClass({
 			<div style={this.styles.container}>
 				<App.Content.MainPage { ...this.props } />
 				<App.Content.Instruction { ...this.props } />
+				<App.Content.Fade { ...this.props } />
 				<App.Content.Game { ...this.props } />
 				<App.Content.End { ...this.props } />
 			</div>
@@ -88,25 +104,21 @@ App.Content = React.createClass({
 
 App.Content.MainPage = React.createClass({
 	render: function() {
+		var showInner = this.props.showInner;
 		return (
-			<div style={m(this.styles.container, this.props.step == 'main-page' && this.styles.show)}>
-				<div className='valign-container' style={this.styles.inner}>
-					<div className='valign-top'>
-						<h2>THE SCREAM SAVER</h2>
-					</div>
-				</div>
-				<div className='valign-container' style={this.styles.inner}>
+			<div style={m(this.styles.container, this.props.step == 'mainpage' && this.styles.show)}>
+				<div className='valign-container' style={m(this.styles.inner, showInner && this.styles.showInner)}>
 					<div className='valign-top text-center'>
 						<h2>Harper&#39;s Bazaar<br/>Presents</h2>
 					</div>
 				</div>
-				<div className='valign-container' style={this.styles.inner}>
+				<div className='valign-container' style={m(this.styles.inner, showInner && this.styles.showInner)}>
 					<div className='valign text-center'>
 						<h1>The Scream Saver</h1>
 						<h2>Interactive Film by Kissinger Twins</h2>
 					</div>
 				</div>
-				<div className='valign-container' style={this.styles.inner}>
+				<div className='valign-container' style={m(this.styles.inner, showInner && this.styles.showInner)}>
 					<div className='valign-bottom text-center'>
 						<button onClick={this.handleStart}>START ></button>
 						<h2>Produced by BSL</h2>
@@ -120,18 +132,24 @@ App.Content.MainPage = React.createClass({
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
+			transition: 'opacity 1s',
 			opacity: 0,
-			transition: 'opacity .2s',
 			pointerEvents: 'none',
+			background: 'url(home.jpg) center / cover',
 		},
 		inner: {
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
+			opacity: 0,
+			transition: 'opacity 2s',
 		},
 		show: {
 			opacity: 1,
 			pointerEvents: 'auto',
+		},
+		showInner: {
+			opacity: 1,
 		},
 	},
 	handleStart: function(event) {
@@ -144,11 +162,6 @@ App.Content.Instruction = React.createClass({
 	render: function() {
 		return (
 			<div style={m(this.styles.container, this.props.step == 'instruction' && this.styles.show)}>
-				<div className='valign-container' style={this.styles.inner}>
-					<div className='valign-top'>
-						<h2>THE SCREAM SAVER</h2>
-					</div>
-				</div>
 				<div className='valign-container' style={this.styles.inner}>
 					<div className='valign text-center'>
 						<h2>Instruction Copy</h2>
@@ -168,8 +181,9 @@ App.Content.Instruction = React.createClass({
 			width: '100%',
 			height: '100%',
 			opacity: 0,
-			transition: 'opacity .2s',
+			transition: 'opacity .2s, background .2s',
 			pointerEvents: 'none',
+			background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(home.jpg) center / cover',
 		},
 		inner: {
 			position: 'absolute',
@@ -182,12 +196,41 @@ App.Content.Instruction = React.createClass({
 		},
 	},
 	handleGo: function() {
-		dispatcher.dispatch({ type: 'goto', step: 'game' });
+		dispatcher.dispatch({ type: 'goto', step: 'fade' });
+	},
+});
+
+App.Content.Fade = React.createClass({
+	render: function() {
+		return (
+			<div style={m(this.styles.container, this.props.step == 'fade' && this.styles.show)}>
+			</div>
+		)
+	},
+	styles: {
+		container: {
+			background: 'black',
+			opacity: 0,
+			transition: 'opacity 1s',
+		},
+		show: {
+			opacity: 1,
+		},
+	},
+	componentDidUpdate: function() {
+		if (this.props.step == 'fade') {
+			this.timeoutID = window.setTimeout(function() {
+				dispatcher.dispatch({ type: 'goto', step: 'game' });
+			}.bind(this), 1000);
+		} else {
+			window.clearTimeout(this.timeoutID);
+		}
 	},
 });
 
 App.Content.Game = React.createClass({
 	render: function() {
+		var showScreamNow = this.props.showScreamNow;
 		return (
 			<div style={m(this.styles.container, this.props.step == 'game' && this.styles.show)}>
 				<video ref='video' className='video-js vjs-default-skin' width='100%' height='100%' data-setup='{"controls": false, "preload": "auto"}' style={this.styles.inner}>
@@ -195,9 +238,9 @@ App.Content.Game = React.createClass({
 					<source src='video.webm' type='video/webm' />
 					<source src='video.ogv' type='video/ogg' />
 				</video>
-				<div className='valign-container' style={this.styles.inner}>
+				<div className='valign-container' style={m(this.styles.screamNow, showScreamNow && this.styles.showScreamNow)}>
 					<div className='valign-top'>
-						<h2>THE SCREAM SAVER</h2>
+						<h2>Scream Now!</h2>
 					</div>
 				</div>
 			</div>
@@ -220,7 +263,16 @@ App.Content.Game = React.createClass({
 			width: '100%',
 			height: '100%',
 		},
+		screamNow: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+			opacity: 0,
+		},
 		show: {
+			opacity: 1,
+		},
+		showScreamNow: {
 			opacity: 1,
 		},
 	},
@@ -257,7 +309,7 @@ App.Content.Game = React.createClass({
 		if (storedSensitivity) {
 			//this.sensitivity = storedSensitivity;
 			//this.refs.settings.sensitivity((this.sensitivity * 100).toFixed(0));
-			this.sensitivity = 0.04;
+			this.sensitivity = 0.6;
 		}
 		if (storedSpeed) {
 			//this.speed = storedSpeed;
@@ -346,6 +398,7 @@ App.Content.Game = React.createClass({
 				this.video.currentTime(nextTime);
 				if (this.video.currentTime() > 5) {
 					this.setState({ game: STATE_PLAYING });
+					dispatcher.dispatch({ type: 'showScreamNow' });
 				}
 				break;
 			case STATE_PLAYING:
@@ -357,38 +410,53 @@ App.Content.Game = React.createClass({
 				}
 				avg /= this.bufferLength;
 
+
 				var currentTime = this.video.currentTime();
-				if (avg > 0.1) {
+				if (currentTime > 5) {
+					dispatcher.dispatch({ type: 'showScreamNow' });
+				} else {
+					dispatcher.dispatch({ type: 'hideScreamNow' });
+				}
+
+				if (avg > this.sensitivity) {
 					this.video.currentTime(currentTime - 0.033);
 				} else {
 					this.video.currentTime(currentTime + 0.033);
 				}
 
 				if (currentTime < 3.5) {
-					console.log('win');
 					this.video.currentTime(13.98);
 					this.setState({ game: STATE_WIN });
+					dispatcher.dispatch({ type: 'hideScreamNow' });
 				} else if (currentTime >= 13.92) {
-					console.log('lose');
-					dispatcher.dispatch({ type: 'goto', step: 'lose' });
-					this.setState({ game: STATE_IDLE });
-					this.video.currentTime(0);
+					this.video.currentTime(17.133);
+					this.setState({ game: STATE_LOSE });
+					dispatcher.dispatch({ type: 'hideScreamNow' });
 				}
 				break;
 			case STATE_WIN:
-				this.video.currentTime(this.video.currentTime() + 0.033);
-				if (this.video.currentTime() >= this.video.duration()) {
+				this.video.currentTime(this.video.currentTime() + this.fpsIntervalMS);
+				if (this.video.currentTime() >= 17) {
+					window.setTimeout(function() { this.video.currentTime(0) }.bind(this), 100);
 					dispatcher.dispatch({ type: 'goto', step: 'win' });
 					this.setState({ game: STATE_IDLE });
-					this.video.currentTime(0);
+				}
+				break;
+			case STATE_LOSE:
+				this.video.currentTime(this.video.currentTime() + this.fpsIntervalMS);
+				if (this.video.currentTime() >= this.video.duration()) {
+					window.setTimeout(function() { this.video.currentTime(0) }.bind(this), 100);
+					dispatcher.dispatch({ type: 'goto', step: 'lose' });
+					this.setState({ game: STATE_IDLE });
 				}
 				break;
 			}
 		}
 	},
 	start: function() {
-		this.fps = 30;
+		this.fps = 25;
 		this.fpsInterval = 1000 / this.fps;
+		this.fpsIntervalMS = 1 / this.fps;
 		this.then = Date.now();
 		this.startTime = this.then;
 		this.draw();
@@ -447,8 +515,8 @@ App.Overlay = React.createClass({
 		var showCredits = this.state.showCredits;
 		var showShare = this.state.showShare;
 		return (
-			<div className='no-pointer-events' style={this.styles.container}>
-				<div className='valign-container' style={m(this.styles.container, this.styles.credits, showCredits && this.styles.showCredits)}>
+			<div className='no-pointer-events' style={m(this.styles.container, this.props.showInner && this.styles.show)}>
+				<div className='valign-container' style={m(this.styles.inner, this.styles.credits, showCredits && this.styles.showCredits)}>
 					<div className='valign text-center'>
 						<h1>Credits</h1>
 						<br/>
@@ -461,7 +529,7 @@ App.Overlay = React.createClass({
 						<button style={m(this.styles.closeCredits, showCredits && { pointerEvents: 'auto' })} onClick={this.handleCloseCredits}>Close</button>
 					</div>
 				</div>
-				<div className='valign-container' style={m(this.styles.container, this.styles.credits, showShare && this.styles.showCredits)}>
+				<div className='valign-container' style={m(this.styles.inner, this.styles.credits, showShare && this.styles.showCredits)}>
 					<div className='valign text-center'>
 						<h1>Share</h1>
 						<br/>
@@ -477,27 +545,20 @@ App.Overlay = React.createClass({
 					<button onClick={this.handleSettings}>Settings</button>
 				</div>
 				*/}
-				<div style={this.styles.container} className='valign-container'>
+				<div style={this.styles.inner} className='valign-container'>
 					<div className='valign-bottom text-left'>
-						<button className='pointer-events' onClick={this.handleCredits}>Credits</button>
+						<button className='pointer-events' style={m(this.styles.creditsButton, (this.props.step == 'win' || this.props.step == 'lose') && this.styles.showCreditsButton)} onClick={this.handleCredits}>Credits</button>
 					</div>
 				</div>
-				<div style={this.styles.container} className='valign-container'>
+				<div style={this.styles.inner} className='valign-container'>
 					<div className='valign-bottom text-right'>
 						<button className='pointer-events' onClick={this.handleShare}>Share</button>
 					</div>
 				</div>
-				<div style={this.styles.container} className='text-right'>
+				<div style={this.styles.inner} className='text-right'>
 					<button className='pointer-events' onClick={this.handleFullscreen}>{ this.state.fullscreen ? 'Exit Fullscreen' : 'Fullscreen' }</button>
+					<button className='pointer-events' onClick={this.handleAudio}>{ this.state.audio ? 'Audio On' : 'Audio Off' }</button>
 				</div>
-				{/*
-				<div style={this.styles.container} className='valign-container'>
-					<div className='valign-bottom text-center'>
-						<a href='https://twitter.com/share' className='twitter-share-button' data-url='http://reykjavik.bbhmakerlab.io' data-text='Hello, World!'>Tweet</a>
-						<div className='fb-share-button' data-href='http://reykjavik.bbhmakerlab.io' data-layout='button_count'></div>
-					</div>
-				</div>
-				*/}
 			</div>
 		)
 	},
@@ -507,23 +568,41 @@ App.Overlay = React.createClass({
 			width: '100%',
 			height: '100%',
 			pointerEvents: 'none',
+			transition: 'opacity .2s',
+			opacity: 0,
+		},
+		inner: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+		},
+		show: {
+			opacity: 1,
 		},
 		credits: {
 			display: 'none',
 			background: 'black',
-			opacity: 0,
 			transition: 'opacity .3s',
+			opacity: 0,
+		},
+		creditsButton: {
+			opacity: 0,
+			pointerEvents: 'none',
 		},
 		showCredits: {
 			display: 'table',
 			opacity: 1,
+		},
+		showCreditsButton: {
+			opacity: 1,
+			pointerEvents: 'auto',
 		},
 		closeCredits: {
 			pointerEvents: 'none',
 		},
 	},
 	getInitialState: function() {
-		return { showCredits: false, showShare: false, fullscreen: false };
+		return { showCredits: false, showShare: false, fullscreen: false, audio: true };
 	},
 	componentDidMount: function() {
 		this.listenerID = dispatcher.register(function(payload) {
@@ -559,6 +638,10 @@ App.Overlay = React.createClass({
 	handleCloseShare: function(evt) {
 		this.setState({ showShare: false });
 	},
+	handleAudio: function(evt) {
+		var audio = this.state.audio;
+		this.setState({ audio: !audio });
+	},
 });
 
 App.Settings = React.createClass({
@@ -566,16 +649,14 @@ App.Settings = React.createClass({
 		return (
 			<div className='text-center' style={m(this.styles.container, this.state.showSettings && this.styles.show)}>
 				<div>
-					<div>
-						<label style={this.styles.label}>Threshold</label>
-						<input style={this.styles.input} ref='sensitivity' type='range' onChange={this.handleSensitivity} />
-					</div>
-					<div>
-						<label style={this.styles.label}>Speed</label>
-						<input style={this.styles.input} ref='speed' type='range' onChange={this.handleSpeed} />
-					</div>
-					<button onClick={this.handleClose} style={this.styles.close}>Close</button>
+					<label style={this.styles.label}>Threshold</label>
+					<input style={this.styles.input} ref='sensitivity' type='range' onChange={this.handleSensitivity} />
 				</div>
+				<div>
+					<label style={this.styles.label}>Speed</label>
+					<input style={this.styles.input} ref='speed' type='range' onChange={this.handleSpeed} />
+				</div>
+				<button onClick={this.handleClose} style={this.styles.close}>Close</button>
 			</div>
 		)
 	},
