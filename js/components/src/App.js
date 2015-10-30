@@ -233,10 +233,9 @@ App.Content.Game = React.createClass({
 		var showScreamNow = this.props.showScreamNow;
 		return (
 			<div style={m(this.styles.container, this.props.step == 'game' && this.styles.show)}>
-				<video ref='video' className='video-js vjs-default-skin' width='100%' height='100%' data-setup='{"controls": false, "preload": "auto"}' style={this.styles.inner}>
+				<video ref='video' className='video-js vjs-default-skin' width='100%' height='100%' style={this.styles.inner}>
 					<source src='video.mp4' type='video/mp4' />
 					<source src='video.webm' type='video/webm' />
-					<source src='video.ogv' type='video/ogg' />
 				</video>
 				<div className='valign-container' style={m(this.styles.screamNow, showScreamNow && this.styles.showScreamNow)}>
 					<div className='valign-top'>
@@ -280,56 +279,56 @@ App.Content.Game = React.createClass({
 		return { game: STATE_IDLE }
 	},
 	componentDidMount: function() {
-		this.video = videojs(this.refs.video);
-
-		// Check getUserMedia
-		if (!hasGetUserMedia()) {
-			alert('getUserMedia() is not supported in your browser');
-			return;
-		}
-
-		// initialize microphone
-		navigator.getUserMedia({
-			'audio': {
-				'mandatory': {
-					'googEchoCancellation': 'false',
-					'googAutoGainControl': 'false',
-					'googNoiseSuppression': 'false',
-					'googHighpassFilter': 'false'
-				},
-				'optional': [],
-			},
-		}, this.onMicrophoneReady, function(err) {
-			alert('User blocked live input :(');
-			return;
-		});
-
-		var storedSensitivity = localStorage.getItem('sensitivity');
-		var storedSpeed = localStorage.getItem('speed');
-		if (storedSensitivity) {
-			//this.sensitivity = storedSensitivity;
-			//this.refs.settings.sensitivity((this.sensitivity * 100).toFixed(0));
-			this.sensitivity = 0.6;
-		}
-		if (storedSpeed) {
-			//this.speed = storedSpeed;
-			//this.refs.settings.speed((this.speed * 100).toFixed(0));
-		}
-
-		this.listenerID = dispatcher.register(function(payload) {
-			switch (payload.type) {
-			case 'sensitivityChanged':
-				this.sensitivity = payload.sensitivity / 100;
-				localStorage.setItem('sensitivity', this.sensitivity);
-				break;
-			case 'speedChanged':
-				this.speed = payload.speed / 100;
-				localStorage.setItem('speed', this.speed);
-				break;
+		this.video = videojs(this.refs.video, {controls: false, preload: 'auto', techOrder: [ 'html5', 'flash' ] }, function() {
+			// Check getUserMedia
+			if (!hasGetUserMedia()) {
+				alert('getUserMedia() is not supported in your browser');
+				return;
 			}
-		}.bind(this));
 
-		this.start();
+			// initialize microphone
+			navigator.getUserMedia({
+				'audio': {
+					'mandatory': {
+						'googEchoCancellation': 'false',
+						'googAutoGainControl': 'false',
+						'googNoiseSuppression': 'false',
+						'googHighpassFilter': 'false'
+					},
+					'optional': [],
+				},
+			}, this.onMicrophoneReady, function(err) {
+				alert('User blocked live input :(');
+				return;
+			});
+
+			var storedSensitivity = localStorage.getItem('sensitivity');
+			var storedSpeed = localStorage.getItem('speed');
+			if (storedSensitivity) {
+				//this.sensitivity = storedSensitivity;
+				//this.refs.settings.sensitivity((this.sensitivity * 100).toFixed(0));
+				this.sensitivity = 0.6;
+			}
+			if (storedSpeed) {
+				//this.speed = storedSpeed;
+				//this.refs.settings.speed((this.speed * 100).toFixed(0));
+			}
+
+			this.listenerID = dispatcher.register(function(payload) {
+				switch (payload.type) {
+				case 'sensitivityChanged':
+					this.sensitivity = payload.sensitivity / 100;
+					localStorage.setItem('sensitivity', this.sensitivity);
+					break;
+				case 'speedChanged':
+					this.speed = payload.speed / 100;
+					localStorage.setItem('speed', this.speed);
+					break;
+				}
+			}.bind(this));
+
+			this.start();
+		}.bind(this));
 	},
 	componentDidUpdate: function() {
 		if (this.state.game == STATE_IDLE && this.props.step == 'game') {

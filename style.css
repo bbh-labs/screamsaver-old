@@ -1,5 +1,5 @@
 * { padding: 0; margin: 0; border: 0; color: white; font-family: "Open Sans", "Helvetica", sans-serif;  }
-html, body, #root { width: 100%; height: 100%; overflow: hidden; background: black; }
+html, body, #root { width: 100%; height: 100%; background: black; }
 body, #root { position: relative; }
 div { -webkit-user-select: none; -o-user-select: none; -moz-user-select: none; user-select: none; }
 /* iframe, a, button { pointer-events: auto; } */
