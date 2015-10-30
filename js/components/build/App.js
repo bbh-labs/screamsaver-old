@@ -5,9 +5,9 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 var React = require('react');
 var ReactDOM = require('react-dom');
 var Flux = require('flux');
-var update = require('react-addons-update');
-var videojs = require('video.js');
 var screenfull = require('screenfull');
+var update = require('react-addons-update');
+var cx = require('classnames');
 
 var dispatcher = new Flux.Dispatcher();
 
@@ -32,13 +32,13 @@ var App = React.createClass({
 		);
 	},
 	getInitialState: function getInitialState() {
-		return { loaded: false, step: '', showInner: false, showScreamNow: false };
+		return { loaded: true, step: '', endstate: '', showInner: false, showScreamNow: false, showCredit: false };
 	},
 	componentDidMount: function componentDidMount() {
 		this.listenerID = dispatcher.register((function (payload) {
 			switch (payload.type) {
 				case 'goto':
-					this.setState({ step: payload.step });
+					this.setState({ step: payload.step, endstate: payload.endstate ? payload.endstate : '' });
 					break;
 				case 'restart':
 					this.restart();
@@ -51,6 +51,12 @@ var App = React.createClass({
 					break;
 				case 'hideScreamNow':
 					this.setState({ showScreamNow: false });
+					break;
+				case 'showCredits':
+					this.setState({ showCredits: true });
+					break;
+				case 'hideCredits':
+					this.setState({ showCredits: false });
 					break;
 			}
 		}).bind(this));
@@ -91,10 +97,13 @@ App.Content = React.createClass({
 		return React.createElement(
 			'div',
 			{ style: this.styles.container },
+			React.createElement(App.Content.Background, this.props),
 			React.createElement(App.Content.MainPage, this.props),
+			React.createElement(App.Content.Fade1, this.props),
 			React.createElement(App.Content.Instruction, this.props),
-			React.createElement(App.Content.Fade, this.props),
+			React.createElement(App.Content.Fade2, this.props),
 			React.createElement(App.Content.Game, this.props),
+			React.createElement(App.Content.Fade3, this.props),
 			React.createElement(App.Content.End, this.props)
 		);
 	},
@@ -112,6 +121,30 @@ App.Content = React.createClass({
 	}
 });
 
+App.Content.Background = React.createClass({
+	displayName: 'Background',
+
+	render: function render() {
+		return React.createElement('div', { style: m(this.styles.container, this.props.step == 'mainpage' && this.styles.show) });
+	},
+	styles: {
+		container: {
+			position: 'absolute',
+			width: '100%',
+			height: '100%',
+			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s',
+			background: 'url(home.jpg) center / cover',
+			opacity: 0
+		},
+		show: {
+			opacity: 1
+		}
+	}
+});
+
 App.Content.MainPage = React.createClass({
 	displayName: 'MainPage',
 
@@ -122,51 +155,51 @@ App.Content.MainPage = React.createClass({
 			{ style: m(this.styles.container, this.props.step == 'mainpage' && this.styles.show) },
 			React.createElement(
 				'div',
-				{ className: 'valign-container', style: m(this.styles.inner, showInner && this.styles.showInner) },
+				{ className: 'valign-container', style: m(this.styles.inner, this.styles.top, showInner && this.styles.showInner) },
 				React.createElement(
 					'div',
 					{ className: 'valign-top text-center' },
 					React.createElement(
-						'h2',
+						'h5',
+						{ style: this.styles.harpersbazaar },
+						'HARPER\'S BAZAAR'
+					),
+					React.createElement(
+						'h5',
 						null,
-						'Harper\'s Bazaar',
-						React.createElement('br', null),
 						'Presents'
 					)
 				)
 			),
 			React.createElement(
 				'div',
-				{ className: 'valign-container', style: m(this.styles.inner, showInner && this.styles.showInner) },
+				{ className: 'valign-container', style: m(this.styles.inner, this.styles.mid, showInner && this.styles.showInner) },
 				React.createElement(
 					'div',
 					{ className: 'valign text-center' },
-					React.createElement(
-						'h1',
-						null,
-						'The Scream Saver'
-					),
+					React.createElement('img', { src: 'images/title.png', style: this.styles.image }),
 					React.createElement(
 						'h2',
-						null,
-						'Interactive Film by Kissinger Twins'
-					)
+						{ style: this.styles.subtitle },
+						'An Interactive Film by Kissinger Twins'
+					),
+					React.createElement('button', { className: 'btn-start', style: this.styles.start, onClick: this.handleStart })
 				)
 			),
 			React.createElement(
 				'div',
-				{ className: 'valign-container', style: m(this.styles.inner, showInner && this.styles.showInner) },
+				{ className: 'valign-container no-pointer-events', style: m(this.styles.inner, this.styles.bottom, showInner && this.styles.showInner) },
 				React.createElement(
 					'div',
 					{ className: 'valign-bottom text-center' },
 					React.createElement(
-						'button',
-						{ onClick: this.handleStart },
-						'START >'
+						'h6',
+						{ className: 'font-medium' },
+						'Created by BBH Asia Pacific'
 					),
 					React.createElement(
-						'h2',
-						null,
+						'h6',
+						{ className: 'font-medium' },
 						'Produced by BSL'
 					)
 				)
@@ -179,16 +212,21 @@ App.Content.MainPage = React.createClass({
 			width: '100%',
 			height: '100%',
 			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s',
 			opacity: 0,
-			pointerEvents: 'none',
-			background: 'url(home.jpg) center / cover'
+			pointerEvents: 'none'
 		},
 		inner: {
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
 			opacity: 0,
-			transition: 'opacity 2s'
+			transition: 'opacity 2s',
+			WebkitTransition: 'opacity 2s',
+			MozTransition: 'opacity 2s',
+			OTransition: 'opacity 2s'
 		},
 		show: {
 			opacity: 1,
@@ -196,11 +234,77 @@ App.Content.MainPage = React.createClass({
 		},
 		showInner: {
 			opacity: 1
+		},
+		harpersbazaar: {
+			fontFamily: 'Didot',
+			fontSize: '1.25rem'
+		},
+		image: {
+			width: '80%'
+		},
+		title: {
+			fontFamily: 'NeoNoire',
+			fontSize: '6.4vw'
+		},
+		subtitle: {
+			fontFamily: 'Avenir UltraLight',
+			fontSize: '2.2vw',
+			fontWeight: 100,
+			paddingTop: '10px'
+		},
+		top: {
+			paddingTop: '20px'
+		},
+		mid: {
+			marginTop: '32px'
+		},
+		bottom: {
+			paddingBottom: '16px'
+		},
+		start: {
+			width: '4rem',
+			height: '4rem',
+			marginTop: '40px',
+			marginTop: '2.5rem',
+			cursor: 'pointer'
 		}
+	},
+	getInitialState: function getInitialState() {
+		return { hoverStart: false };
 	},
 	handleStart: function handleStart(event) {
 		event.preventDefault();
-		dispatcher.dispatch({ type: 'goto', step: 'instruction' });
+		dispatcher.dispatch({ type: 'goto', step: 'fade1' });
+	}
+});
+
+App.Content.Fade1 = React.createClass({
+	displayName: 'Fade1',
+
+	render: function render() {
+		return React.createElement('div', { style: m(this.styles.container, this.props.step == 'fade1' && this.styles.show) });
+	},
+	styles: {
+		container: {
+			background: 'black',
+			opacity: 0,
+			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s'
+		},
+		show: {
+			opacity: 1
+		}
+	},
+	componentDidUpdate: function componentDidUpdate() {
+		if (this.props.step == 'fade1') {
+			this.timeoutID = window.setTimeout((function () {
+				dispatcher.dispatch({ type: 'goto', step: 'instruction' });
+			}).bind(this), 1500);
+		} else {
+			window.clearTimeout(this.timeoutID);
+		}
 	}
 });
 
@@ -219,21 +323,14 @@ App.Content.Instruction = React.createClass({
 					{ className: 'valign text-center' },
 					React.createElement(
 						'h2',
-						null,
-						'Instruction Copy'
-					)
-				)
-			),
-			React.createElement(
-				'div',
-				{ className: 'valign-container', style: this.styles.inner },
-				React.createElement(
-					'div',
-					{ className: 'valign-bottom text-center' },
-					React.createElement(
-						'button',
-						{ onClick: this.handleGo },
-						'GO! >'
+						{ style: this.styles.text },
+						'COPYTBC. She\'s so damn pretty. But soon, she will be pretty damn dead. Unless you can ',
+						React.createElement(
+							'p',
+							{ style: this.styles.bold },
+							'turn on your microphone'
+						),
+						', scream your lungs out and save her from the werewolf. Whether it\'s a horror lynchfest or a casual popcorn friday night movie, the end is in your hands.'
 					)
 				)
 			)
@@ -245,9 +342,19 @@ App.Content.Instruction = React.createClass({
 			width: '100%',
 			height: '100%',
 			opacity: 0,
-			transition: 'opacity .2s, background .2s',
-			pointerEvents: 'none',
-			background: 'linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(home.jpg) center / cover'
+			transition: 'opacity .2s ease-in, opacity 1s ease-out',
+			WebkitTransition: 'opacity .2s ease-in, opacity 1s ease-out',
+			MozTransition: 'opacity .2s ease-in, opacity 1s ease-out',
+			OTransition: 'opacity .2s ease-in, opacity 1s ease-out',
+			pointerEvents: 'none'
+		},
+		text: {
+			fontFamily: 'Avenir UltraLight',
+			fontSize: '24pt',
+			fontSize: '2rem',
+			fontWeight: 300,
+			width: '65%',
+			margin: '0 auto'
 		},
 		inner: {
 			position: 'absolute',
@@ -257,31 +364,36 @@ App.Content.Instruction = React.createClass({
 		show: {
 			opacity: 1,
 			pointerEvents: 'auto'
+		},
+		bold: {
+			display: 'inline',
+			fontFamily: 'Avenir',
+			fontWeight: 'bold'
 		}
-	},
-	handleGo: function handleGo() {
-		dispatcher.dispatch({ type: 'goto', step: 'fade' });
 	}
 });
 
-App.Content.Fade = React.createClass({
-	displayName: 'Fade',
+App.Content.Fade2 = React.createClass({
+	displayName: 'Fade2',
 
 	render: function render() {
-		return React.createElement('div', { style: m(this.styles.container, this.props.step == 'fade' && this.styles.show) });
+		return React.createElement('div', { style: m(this.styles.container, this.props.step == 'fade2' && this.styles.show) });
 	},
 	styles: {
 		container: {
 			background: 'black',
 			opacity: 0,
-			transition: 'opacity 1s'
+			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s'
 		},
 		show: {
 			opacity: 1
 		}
 	},
 	componentDidUpdate: function componentDidUpdate() {
-		if (this.props.step == 'fade') {
+		if (this.props.step == 'fade2') {
 			this.timeoutID = window.setTimeout((function () {
 				dispatcher.dispatch({ type: 'goto', step: 'game' });
 			}).bind(this), 1000);
@@ -301,7 +413,7 @@ App.Content.Game = React.createClass({
 			{ style: m(this.styles.container, this.props.step == 'game' && this.styles.show) },
 			React.createElement(
 				'video',
-				{ ref: 'video', className: 'video-js vjs-default-skin', width: '100%', height: '100%', style: this.styles.inner },
+				{ id: 'video', style: this.styles.video, width: '640', height: '480', preload: true },
 				React.createElement('source', { src: 'video.mp4', type: 'video/mp4' }),
 				React.createElement('source', { src: 'video.webm', type: 'video/webm' })
 			),
@@ -311,37 +423,42 @@ App.Content.Game = React.createClass({
 				React.createElement(
 					'div',
 					{ className: 'valign-top' },
-					React.createElement(
-						'h2',
-						null,
-						'Scream Now!'
-					)
+					React.createElement('img', { src: 'images/scream_now.gif', width: '100px', style: this.styles.image })
 				)
 			)
 		);
 	},
-	ACCEL: 0.033,
-	sensitivity: 0.5,
-	speed: 1,
 	styles: {
 		container: {
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
 			opacity: 0,
-			transition: 'opacity .2s',
+			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s',
 			pointerEvents: 'none'
 		},
-		inner: {
+		video: {
 			position: 'absolute',
 			width: '100%',
-			height: '100%'
+			height: '100%',
+			objectFit: 'cover'
 		},
 		screamNow: {
 			position: 'absolute',
 			width: '100%',
 			height: '100%',
-			opacity: 0
+			opacity: 0,
+			transition: 'opacity .4s',
+			WebkitTransition: 'opacity .4s',
+			MozTransition: 'opacity .4s',
+			OTransition: 'opacity .4s'
+		},
+		image: {
+			marginTop: '16px',
+			marginLeft: '16px'
 		},
 		show: {
 			opacity: 1
@@ -354,7 +471,14 @@ App.Content.Game = React.createClass({
 		return { game: STATE_IDLE };
 	},
 	componentDidMount: function componentDidMount() {
-		this.video = videojs(this.refs.video, { controls: false, preload: 'auto', techOrder: ['html5', 'flash'] }, (function () {
+		this.video = new MediaElement('video');
+		this.video.addEventListener('loadeddata', (function (e) {
+			dispatcher.dispatch({ type: 'videoLoaded' });
+		}).bind(this));
+		this.video.load();
+	},
+	componentDidUpdate: function componentDidUpdate() {
+		if (this.props.step == 'instruction') {
 			// Check getUserMedia
 			if (!hasGetUserMedia()) {
 				alert('getUserMedia() is not supported in your browser');
@@ -372,87 +496,53 @@ App.Content.Game = React.createClass({
 					},
 					'optional': []
 				}
-			}, this.onMicrophoneReady, function (err) {
-				alert('User blocked live input :(');
+			}, (function (stream) {
+				// Initialize Web Audio
+				try {
+					window.AudioContext = window.AudioContext || window.webkitAudioContext;
+					this.audioContext = new AudioContext();
+				} catch (e) {
+					alert('Web Audio API is not supported in this browser');
+					return;
+				}
+
+				// retrieve the current sample rate to be used for WAV packaging
+				this.sampleRate = this.audioContext.sampleRate;
+
+				// creates a gain node
+				this.volume = this.audioContext.createGain();
+
+				// creates an audio node from the microphone incoming stream
+				this.audioInput = this.audioContext.createMediaStreamSource(stream);
+
+				// connect the stream to the gain node
+				this.audioInput.connect(this.volume);
+
+				// creates analyzer
+				this.analyser = this.audioContext.createAnalyser();
+				this.analyser.fftSize = 2048;
+				this.bufferLength = this.analyser.frequencyBinCount;
+				this.dataArray = new Uint8Array(this.bufferLength);
+				this.analyser.getByteFrequencyData(this.dataArray);
+
+				// connect gain to analyzer node
+				this.volume.connect(this.analyser);
+
+				dispatcher.dispatch({ type: 'goto', step: 'fade2' });
+			}).bind(this), function (err) {
+				alert('You either don\'t have microphone or blocked access to it :(');
+				dispatcher.dispatch({ type: 'goto', step: 'mainpage' });
 				return;
 			});
+		}
 
-			var storedSensitivity = localStorage.getItem('sensitivity');
-			var storedSpeed = localStorage.getItem('speed');
-			if (storedSensitivity) {
-				//this.sensitivity = storedSensitivity;
-				//this.refs.settings.sensitivity((this.sensitivity * 100).toFixed(0));
-				this.sensitivity = 0.6;
-			}
-			if (storedSpeed) {
-				//this.speed = storedSpeed;
-				//this.refs.settings.speed((this.speed * 100).toFixed(0));
-			}
-
-			this.listenerID = dispatcher.register((function (payload) {
-				switch (payload.type) {
-					case 'sensitivityChanged':
-						this.sensitivity = payload.sensitivity / 100;
-						localStorage.setItem('sensitivity', this.sensitivity);
-						break;
-					case 'speedChanged':
-						this.speed = payload.speed / 100;
-						localStorage.setItem('speed', this.speed);
-						break;
-				}
-			}).bind(this));
-
-			this.start();
-		}).bind(this));
-	},
-	componentDidUpdate: function componentDidUpdate() {
 		if (this.state.game == STATE_IDLE && this.props.step == 'game') {
+			this.start();
 			this.setState({ game: STATE_BEGINNING });
 		}
 	},
 	componentWillUnmount: function componentWillUnmount() {
 		this.video = null;
-		dispatcher.unregister(this.listenerID);
-	},
-	onMicrophoneReady: function onMicrophoneReady(stream) {
-		// Initialize Web Audio
-		try {
-			window.AudioContext = window.AudioContext || window.webkitAudioContext;
-			this.audioContext = new AudioContext();
-		} catch (e) {
-			alert('Web Audio API is not supported in this browser');
-			return;
-		}
-
-		// retrieve the current sample rate to be used for WAV packaging
-		this.sampleRate = this.audioContext.sampleRate;
-
-		// creates a gain node
-		this.volume = this.audioContext.createGain();
-
-		// creates an audio node from the microphone incoming stream
-		this.audioInput = this.audioContext.createMediaStreamSource(stream);
-
-		// connect the stream to the gain node
-		this.audioInput.connect(this.volume);
-
-		// creates analyzer
-		this.analyser = this.audioContext.createAnalyser();
-		this.analyser.fftSize = 2048;
-		this.bufferLength = this.analyser.frequencyBinCount;
-		this.dataArray = new Uint8Array(this.bufferLength);
-		this.analyser.getByteFrequencyData(this.dataArray);
-
-		// connect gain to analyzer node
-		this.volume.connect(this.analyser);
-
-		this.init();
-	},
-	init: function init() {
-		this.video.load();
-		this.video.on('loadeddata', (function (e) {
-			dispatcher.dispatch({ type: 'videoLoaded' });
-		}).bind(this));
 	},
 	draw: function draw() {
 		requestAnimationFrame(this.draw);
@@ -468,9 +558,9 @@ App.Content.Game = React.createClass({
 				case STATE_IDLE:
 					break;
 				case STATE_BEGINNING:
-					var nextTime = this.video.currentTime() + 0.033;
-					this.video.currentTime(nextTime);
-					if (this.video.currentTime() > 5) {
+					var nextTime = this.video.currentTime + this.fpsIntervalSec;
+					this.video.setCurrentTime(nextTime);
+					if (this.video.currentTime > 5) {
 						this.setState({ game: STATE_PLAYING });
 						dispatcher.dispatch({ type: 'showScreamNow' });
 					}
@@ -484,46 +574,46 @@ App.Content.Game = React.createClass({
 					}
 					avg /= this.bufferLength;
 
-					var currentTime = this.video.currentTime();
+					var currentTime = this.video.currentTime;
 					if (currentTime > 5) {
 						dispatcher.dispatch({ type: 'showScreamNow' });
 					} else {
 						dispatcher.dispatch({ type: 'hideScreamNow' });
 					}
 
-					if (avg > this.sensitivity) {
-						this.video.currentTime(currentTime - 0.033);
+					if (avg > 0.15) {
+						this.video.setCurrentTime(currentTime - this.fpsIntervalSec);
 					} else {
-						this.video.currentTime(currentTime + 0.033);
+						this.video.setCurrentTime(currentTime + this.fpsIntervalSec);
 					}
 
 					if (currentTime < 3.5) {
-						this.video.currentTime(13.98);
+						this.video.setCurrentTime(13.98);
 						this.setState({ game: STATE_WIN });
 						dispatcher.dispatch({ type: 'hideScreamNow' });
-					} else if (currentTime >= 13.92) {
-						this.video.currentTime(17.133);
+					} else if (currentTime >= 13.8) {
+						this.video.setCurrentTime(17.133);
 						this.setState({ game: STATE_LOSE });
 						dispatcher.dispatch({ type: 'hideScreamNow' });
 					}
 					break;
 				case STATE_WIN:
-					this.video.currentTime(this.video.currentTime() + this.fpsIntervalMS);
-					if (this.video.currentTime() >= 17) {
+					this.video.setCurrentTime(this.video.currentTime + this.fpsIntervalSec);
+					if (this.video.currentTime >= 17) {
 						window.setTimeout((function () {
-							this.video.currentTime(0);
-						}).bind(this), 100);
-						dispatcher.dispatch({ type: 'goto', step: 'win' });
+							this.video.setCurrentTime(0);
+						}).bind(this), 1000);
+						dispatcher.dispatch({ type: 'goto', step: 'fade3', endstate: 'win' });
 						this.setState({ game: STATE_IDLE });
 					}
 					break;
 				case STATE_LOSE:
-					this.video.currentTime(this.video.currentTime() + this.fpsIntervalMS);
-					if (this.video.currentTime() >= this.video.duration()) {
+					this.video.setCurrentTime(this.video.currentTime + this.fpsIntervalSec);
+					if (this.video.currentTime >= this.video.duration) {
 						window.setTimeout((function () {
-							this.video.currentTime(0);
-						}).bind(this), 100);
-						dispatcher.dispatch({ type: 'goto', step: 'lose' });
+							this.video.setCurrentTime(0);
+						}).bind(this), 1000);
+						dispatcher.dispatch({ type: 'goto', step: 'fade3', endstate: 'lose' });
 						this.setState({ game: STATE_IDLE });
 					}
 					break;
@@ -533,14 +623,44 @@ App.Content.Game = React.createClass({
 	start: function start() {
 		this.fps = 25;
 		this.fpsInterval = 1000 / this.fps;
-		this.fpsIntervalMS = 1 / this.fps;
+		this.fpsIntervalSec = 1 / this.fps;
 		this.then = Date.now();
 		this.startTime = this.then;
 		this.draw();
 	},
 	restart: function restart() {
-		this.video.currentTime(0);
+		this.video.setCurrentTime(0);
 		this.start();
+	}
+});
+
+App.Content.Fade3 = React.createClass({
+	displayName: 'Fade3',
+
+	render: function render() {
+		return React.createElement('div', { style: m(this.styles.container, this.props.step == 'fade3' && this.styles.show) });
+	},
+	styles: {
+		container: {
+			background: 'black',
+			opacity: 0,
+			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s'
+		},
+		show: {
+			opacity: 1
+		}
+	},
+	componentDidUpdate: function componentDidUpdate() {
+		if (this.props.step == 'fade3') {
+			this.timeoutID = window.setTimeout((function () {
+				dispatcher.dispatch({ type: 'goto', step: this.props.endstate });
+			}).bind(this), 1500);
+		} else {
+			window.clearTimeout(this.timeoutID);
+		}
 	}
 });
 
@@ -550,6 +670,7 @@ App.Content.End = React.createClass({
 	render: function render() {
 		var step = this.props.step;
 		var bShouldShow = step === 'win' || step === 'lose';
+		var iconStyle = m(this.styles.image, bShouldShow && { pointerEvent: 'auto', cursor: 'pointer' });
 		return React.createElement(
 			'div',
 			{ style: m(this.styles.container, bShouldShow && this.styles.show) },
@@ -561,19 +682,15 @@ App.Content.End = React.createClass({
 					{ className: 'valign text-center' },
 					React.createElement(
 						'h1',
-						null,
-						step === 'win' ? 'Happy' : 'Unhappy',
-						' Ending Copy'
+						{ style: this.styles.text },
+						step == 'win' ? 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec orci lacus, ultricies et dui at, hendrerit egestas odio. Sed lacinia, metus sed efficitur efficitu' : 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec orci lacus, ultricies et dui at, hendrerit egestas odio. Sed lacinia, metus sed efficitur efficitu'
 					),
+					React.createElement('button', { className: 'btn-restart-large', style: iconStyle, onClick: this.handleRestart }),
+					React.createElement('button', { className: 'btn-facebook-large', style: iconStyle, onClick: this.handleFacebook }),
 					React.createElement(
-						'button',
-						{ onClick: this.handleRestart },
-						'Restart'
-					),
-					React.createElement(
-						'button',
-						{ onClick: this.handleShare },
-						'Share'
+						'a',
+						{ href: 'http://twitter.com/share?text=Screamsaver', target: 'popup' },
+						React.createElement('button', { className: 'btn-twitter-large', style: iconStyle })
 					)
 				)
 			)
@@ -585,7 +702,10 @@ App.Content.End = React.createClass({
 			width: '100%',
 			height: '100%',
 			opacity: 0,
-			transition: 'opacity .2s',
+			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s',
 			pointerEvents: 'none'
 		},
 		inner: {
@@ -596,13 +716,26 @@ App.Content.End = React.createClass({
 		show: {
 			opacity: 1,
 			pointerEvents: 'auto'
+		},
+		text: {
+			fontFamily: 'Avenir UltraLight',
+			maxWidth: '80%',
+			margin: '16px auto'
+		},
+		image: {
+			maxWidth: '64px',
+			maxWidth: '4rem',
+			margin: '0 16px'
 		}
 	},
-	handleRestart: function handleRestart() {
-		dispatcher.dispatch({ type: 'goto', step: 'game' });
+	handleFacebook: function handleFacebook() {
+		FB.ui({
+			method: 'share',
+			href: 'http://screamsaver.bbhmakerlab.io'
+		});
 	},
-	handleShare: function handleShare() {
-		dispatcher.dispatch({ type: 'showShare' });
+	handleRestart: function handleRestart() {
+		dispatcher.dispatch({ type: 'goto', step: 'mainpage' });
 	}
 });
 
@@ -610,17 +743,17 @@ App.Overlay = React.createClass({
 	displayName: 'Overlay',
 
 	render: function render() {
-		var showCredits = this.state.showCredits;
-		var showShare = this.state.showShare;
+		var showCredits = this.props.showCredits;
+		var hideStyle = showCredits && this.styles.hide;
 		return React.createElement(
 			'div',
 			{ className: 'no-pointer-events', style: m(this.styles.container, this.props.showInner && this.styles.show) },
 			React.createElement(
 				'div',
-				{ className: 'valign-container', style: m(this.styles.inner, this.styles.credits, showCredits && this.styles.showCredits) },
+				{ className: 'valign-container', style: m(this.styles.inner, this.styles.creditsContainer, showCredits && this.styles.showCredits) },
 				React.createElement(
 					'div',
-					{ className: 'valign text-center' },
+					{ className: 'valign text-center', style: this.styles.creditsInner },
 					React.createElement(
 						'h1',
 						null,
@@ -628,71 +761,89 @@ App.Overlay = React.createClass({
 					),
 					React.createElement('br', null),
 					React.createElement(
-						'h1',
+						'h2',
 						null,
-						'Names'
+						'Black Sheep Live'
 					),
 					React.createElement(
-						'h1',
+						'h3',
 						null,
-						'Names'
+						'Live & Interaction Direction - The Kissinger Twins'
 					),
 					React.createElement(
-						'h1',
+						'h3',
 						null,
-						'Names'
+						'Executive Producer - Vanessa Hurst'
 					),
 					React.createElement(
-						'h1',
+						'h3',
 						null,
-						'Names'
+						'DOP - Zoltán Halmágyi'
 					),
 					React.createElement(
-						'h1',
+						'h3',
 						null,
-						'...'
+						'Producer - Ray Chia'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Developer - Jacky Boen'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Designer - Zac Ong'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'PA - Nicole Quek'
 					),
 					React.createElement('br', null),
 					React.createElement(
-						'button',
-						{ style: m(this.styles.closeCredits, showCredits && { pointerEvents: 'auto' }), onClick: this.handleCloseCredits },
-						'Close'
+						'h2',
+						null,
+						'Harper\'s Bazaar'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Stylist: Windy Aulia'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Models: Darina/Mannequin, Mario/Mannequin'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Hair: John Lee / FAC3INC'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Makeup: Cheryl Ow'
+					),
+					React.createElement(
+						'h3',
+						null,
+						'Assistant Stylists:  Debby Kwong, Pakkee Tan'
 					)
 				)
 			),
 			React.createElement(
 				'div',
-				{ className: 'valign-container', style: m(this.styles.inner, this.styles.credits, showShare && this.styles.showCredits) },
-				React.createElement(
-					'div',
-					{ className: 'valign text-center' },
-					React.createElement(
-						'h1',
-						null,
-						'Share'
-					),
-					React.createElement('br', null),
-					React.createElement(
-						'a',
-						{ href: 'https://twitter.com/share', className: 'twitter-share-button pointer-events', 'data-url': 'http://screamsaver.bbhmakerlab.io', 'data-text': 'Hello, World!' },
-						'Tweet'
-					),
-					React.createElement('br', null),
-					React.createElement('div', { className: 'fb-share-button pointer-events', 'data-href': 'http://screamsaver.bbhmakerlab.io', 'data-layout': 'button_count' }),
-					React.createElement('br', null),
-					React.createElement(
-						'button',
-						{ style: m(this.styles.closeCredits, showShare && { pointerEvents: 'auto' }), onClick: this.handleCloseShare },
-						'Close'
-					)
-				)
+				{ style: m(this.styles.inner, this.styles.closeCreditsContainer, showCredits && this.styles.showCredits) },
+				React.createElement('div', { className: 'btn-close pointer-events', style: this.styles.closeCredits, onClick: this.handleCloseCredits })
 			),
 			React.createElement(
 				'div',
-				{ style: this.styles.inner, className: 'valign-container' },
+				{ style: m(this.styles.inner, hideStyle), className: 'valign-container' },
 				React.createElement(
 					'div',
-					{ className: 'valign-bottom text-left' },
+					{ className: 'valign-bottom text-right' },
 					React.createElement(
 						'button',
 						{ className: 'pointer-events', style: m(this.styles.creditsButton, (this.props.step == 'win' || this.props.step == 'lose') && this.styles.showCreditsButton), onClick: this.handleCredits },
@@ -702,30 +853,19 @@ App.Overlay = React.createClass({
 			),
 			React.createElement(
 				'div',
-				{ style: this.styles.inner, className: 'valign-container' },
+				{ style: m(this.styles.inner, hideStyle), className: 'valign-container' },
 				React.createElement(
 					'div',
-					{ className: 'valign-bottom text-right' },
-					React.createElement(
-						'button',
-						{ className: 'pointer-events', onClick: this.handleShare },
-						'Share'
-					)
+					{ className: 'valign-bottom text-left' },
+					React.createElement('button', { className: 'btn-facebook pointer-events', style: this.styles.facebook, onClick: this.handleFacebook }),
+					React.createElement('a', { className: 'btn-twitter pointer-events', href: 'http://twitter.com/share?text=Screamsaver', target: 'popup', style: this.styles.twitter })
 				)
 			),
 			React.createElement(
 				'div',
-				{ style: this.styles.inner, className: 'text-right' },
-				React.createElement(
-					'button',
-					{ className: 'pointer-events', onClick: this.handleFullscreen },
-					this.state.fullscreen ? 'Exit Fullscreen' : 'Fullscreen'
-				),
-				React.createElement(
-					'button',
-					{ className: 'pointer-events', onClick: this.handleAudio },
-					this.state.audio ? 'Audio On' : 'Audio Off'
-				)
+				{ style: m(this.styles.inner, hideStyle), className: 'text-right' },
+				React.createElement('button', { className: cx(this.state.audio ? 'btn-audio-on' : 'btn-audio-off', 'pointer-events'), style: this.styles.audio, onClick: this.handleAudio }),
+				React.createElement('button', { className: 'btn-fullscreen pointer-events', style: this.styles.fullscreen, onClick: this.handleFullscreen })
 			)
 		);
 	},
@@ -736,6 +876,9 @@ App.Overlay = React.createClass({
 			height: '100%',
 			pointerEvents: 'none',
 			transition: 'opacity .2s',
+			WebkitTransition: 'opacity .2s',
+			MozTransition: 'opacity .2s',
+			OTransition: 'opacity .2s',
 			opacity: 0
 		},
 		inner: {
@@ -746,15 +889,28 @@ App.Overlay = React.createClass({
 		show: {
 			opacity: 1
 		},
-		credits: {
+		creditsContainer: {
 			display: 'none',
 			background: 'black',
 			transition: 'opacity .3s',
+			WebkitTransition: 'opacity .3s',
+			MozTransition: 'opacity .3s',
+			OTransition: 'opacity .3s',
 			opacity: 0
+		},
+		creditsInner: {
+			position: 'relative',
+			margin: '0 auto',
+			height: '100%',
+			padding: '16px'
 		},
 		creditsButton: {
 			opacity: 0,
-			pointerEvents: 'none'
+			pointerEvents: 'none',
+			padding: '16px',
+			background: 'white',
+			color: 'black',
+			cursor: 'pointer'
 		},
 		showCredits: {
 			display: 'table',
@@ -764,12 +920,29 @@ App.Overlay = React.createClass({
 			opacity: 1,
 			pointerEvents: 'auto'
 		},
+		closeCreditsContainer: {
+			display: 'none',
+			transition: 'opacity .3s',
+			WebkitTransition: 'opacity .3s',
+			MozTransition: 'opacity .3s',
+			OTransition: 'opacity .3s',
+			opacity: 0
+		},
 		closeCredits: {
+			position: 'absolute',
+			display: 'inline-block',
+			maxWidth: '4rem',
+			maxWidth: '64px',
+			cursor: 'pointer',
+			pointerEvents: 'none'
+		},
+		hide: {
+			display: 'none',
 			pointerEvents: 'none'
 		}
 	},
 	getInitialState: function getInitialState() {
-		return { showCredits: false, showShare: false, fullscreen: false, audio: true };
+		return { fullscreen: false, audio: true };
 	},
 	componentDidMount: function componentDidMount() {
 		this.listenerID = dispatcher.register((function (payload) {
@@ -783,14 +956,8 @@ App.Overlay = React.createClass({
 	componentWillUnmount: function componentWillUnmount() {
 		dispatcher.unregister(this.listenerID);
 	},
-	handleSettings: function handleSettings(evt) {
-		dispatcher.dispatch({ type: 'settings' });
-	},
 	handleCredits: function handleCredits(evt) {
-		this.setState({ showCredits: true });
-	},
-	handleShare: function handleShare(evt) {
-		this.setState({ showShare: true });
+		dispatcher.dispatch({ type: 'showCredits' });
 	},
 	handleFullscreen: function handleFullscreen(evt) {
 		var fullscreen = this.state.fullscreen;
@@ -800,7 +967,7 @@ App.Overlay = React.createClass({
 		}
 	},
 	handleCloseCredits: function handleCloseCredits(evt) {
-		this.setState({ showCredits: false });
+		dispatcher.dispatch({ type: 'hideCredits' });
 	},
 	handleCloseShare: function handleCloseShare(evt) {
 		this.setState({ showShare: false });
@@ -808,98 +975,12 @@ App.Overlay = React.createClass({
 	handleAudio: function handleAudio(evt) {
 		var audio = this.state.audio;
 		this.setState({ audio: !audio });
-	}
-});
-
-App.Settings = React.createClass({
-	displayName: 'Settings',
-
-	render: function render() {
-		return React.createElement(
-			'div',
-			{ className: 'text-center', style: m(this.styles.container, this.state.showSettings && this.styles.show) },
-			React.createElement(
-				'div',
-				null,
-				React.createElement(
-					'label',
-					{ style: this.styles.label },
-					'Threshold'
-				),
-				React.createElement('input', { style: this.styles.input, ref: 'sensitivity', type: 'range', onChange: this.handleSensitivity })
-			),
-			React.createElement(
-				'div',
-				null,
-				React.createElement(
-					'label',
-					{ style: this.styles.label },
-					'Speed'
-				),
-				React.createElement('input', { style: this.styles.input, ref: 'speed', type: 'range', onChange: this.handleSpeed })
-			),
-			React.createElement(
-				'button',
-				{ onClick: this.handleClose, style: this.styles.close },
-				'Close'
-			)
-		);
 	},
-	styles: {
-		container: {
-			position: 'absolute',
-			width: '100%',
-			height: '100%',
-			background: 'rgba(0,0,0,0.5)',
-			transition: 'opacity .2s',
-			display: 'none',
-			opacity: 0
-		},
-		show: {
-			display: 'block',
-			opacity: 1
-		},
-		label: {
-			display: 'inline-block',
-			minWidth: '128px'
-		},
-		input: {
-			width: '200px'
-		},
-		close: {
-			margin: '16px'
-		}
-	},
-	getInitialState: function getInitialState() {
-		return { showSettings: false };
-	},
-	componentDidMount: function componentDidMount() {
-		this.listenerID = dispatcher.register((function (payload) {
-			switch (payload.type) {
-				case 'settings':
-					var showSettings = this.state.showSettings;
-					this.setState({ showSettings: !showSettings });
-					break;
-			}
-		}).bind(this));
-	},
-	componentWillUnmount: function componentWillUnmount() {
-		dispatcher.unregister(this.listenerID);
-	},
-	handleClose: function handleClose(evt) {
-		this.setState({ showSettings: false });
-	},
-	handleSensitivity: function handleSensitivity(evt) {
-		dispatcher.dispatch({ type: 'sensitivityChanged', sensitivity: evt.target.value });
-	},
-	handleSpeed: function handleSpeed(evt) {
-		dispatcher.dispatch({ type: 'speedChanged', speed: evt.target.value });
-	},
-	sensitivity: function sensitivity(value) {
-		this.refs.sensitivity.value = value;
-	},
-	speed: function speed(value) {
-		this.refs.speed.value = value;
+	handleFacebook: function handleFacebook(evt) {
+		FB.ui({
+			method: 'share',
+			href: 'http://screamsaver.bbhmakerlab.io'
+		});
 	}
 });
 
@@ -909,7 +990,7 @@ App.LoadingScreen = React.createClass({
 	render: function render() {
 		return React.createElement(
 			'div',
-			{ style: m(this.styles.container, this.props.loaded && this.styles.hide), className: 'valign-wrapper' },
+			{ id: 'loading-screen', className: 'valign-wrapper', style: m(this.styles.container, this.props.loaded && this.styles.hide) },
 			React.createElement(
 				'div',
 				{ className: 'valign sk-circle', style: this.styles.spinner },
@@ -936,6 +1017,9 @@ App.LoadingScreen = React.createClass({
 			background: 'black',
 			pointerEvents: 'none',
 			transition: 'opacity 1s',
+			WebkitTransition: 'opacity 1s',
+			MozTransition: 'opacity 1s',
+			OTransition: 'opacity 1s',
 			opacity: 1
 		},
 		spinner: {
@@ -964,8 +1048,4 @@ function hasGetUserMedia() {
 }
 
 ReactDOM.render(React.createElement(App, null), document.getElementById('root'));
-/*
-<div style={this.styles.container}>
-<button onClick={this.handleSettings}>Settings</button>
-</div>
-*/
+/*<h1 style={this.styles.title}>The Scream Saver</h1>*/
