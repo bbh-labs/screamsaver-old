@@ -4,19 +4,31 @@
 	<!--[if lt IE 9]>
 	<script>
 		worseThanIE9 = true;
-		alert('The browser currently used is too old to run this website. Try Chrome, Firefox, or Internet Explorer 9+.');
+		alert('The browser currently used is too old to run this website. Try Chrome, Firefox, Edge, or Opera.');
 	</script>
 	<![endif]-->
+
+	<meta charset='utf-8' />
+
+	<!-- Twitter -->
+	<meta name='twitter:card' content='summary_large_image' />
+	<meta name='twitter:site' content='@HarpersBazaarSG' />
+	<meta name='twitter:title' content='Screamsaver' />
+	<meta name='twitter:description' content='BSL presents: Screamsaver an interactive Halloween film. Directed by The Kissinger Twins' />
+	<meta name='twitter:image' content='http://harpersbazaar.com.sg/screamsaver/images/unnamed.jpg' />
+
+	<!-- Facebook -->
+	<meta property='og:site_name' content='Screamsaver' />
+	<meta property='og:url' content='http://harpersbazaar.com.sg/screamsaver' />
+	<meta property='og:title' content='Screamsaver' />
+	<meta property='og:description' content='Blacksheep Live presents: Screamsaver a Halloween film. Directed by The Kissinger Twins' />
+	<meta property='og:image' content='http://harpersbazaar.com.sg/screamsaver/images/unnamed.jpg' />
 
 	<!-- Mobile -->
 	<meta name='viewport' content='width=device-width,initial-scale=1,user-scalable=no' />
 
-	<!-- Open Sans -->
-	<link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' />
-
 	<!-- CSS -->
-	<link href='vendors/mediaelement/mediaelementplayer.min.css' />
-	<link href='style.css' rel='stylesheet' />
+	<link href='css/style.css' rel='stylesheet' />
 </head>
 <body>
 	<script>
@@ -39,7 +51,6 @@
 
 	<div id='root'></div>
 
-	<script src='vendors/mediaelement/mediaelement.min.js'></script>
 	<script src='js/bundle.js'></script>
 
 	<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>

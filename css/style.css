@@ -1,0 +1,177 @@
+* { padding: 0; margin: 0; border: 0; color: white; }
+html, body, #root { width: 100%; height: 100%; background: black; }
+body, #root { position: relative; }
+div { -webkit-user-select: none; -o-user-select: none; -moz-user-select: none; user-select: none; }
+*:focus { outline: none }
+
+@font-face {
+	font-family: 'Avenir Medium';
+	src: url(../fonts/AvenirNext/AvenirNext-Medium.ttf);
+}
+
+@font-face {
+	font-family: 'Avenir UltraLight';
+	src: url(../fonts/AvenirNext/AvenirNext-UltraLight.ttf);
+}
+
+h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
+	font-family: 'Avenir UltraLight', Helvetica, Arial, sans-serif;
+}
+
+.valign-container { display: table; }
+.valign { display: table-cell; vertical-align: middle; }
+.valign-top { display: table-cell; vertical-align: top; }
+.valign-bottom { display: table-cell; vertical-align: bottom; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.black-text { color: black; }
+.pointer-events { pointer-events: auto !important }
+.no-pointer-events { pointer-events: none !important }
+.fb-share-button { margin: 0 16px; bottom: 5px; }
+.font-medium { font-family: 'Avenir Medium'; font-weight: 100; }
+
+.btn-start { background: url(../images/play.png) center / contain no-repeat; }
+.btn-start:hover { background: url(../images/play_hover.png) center / contain no-repeat; }
+.btn-facebook { 
+	display: inline-block;
+	background: url(../images/facebook.png) center / contain no-repeat;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
+	margin-bottom: 16px;
+	margin-left: 16px;
+	cursor: pointer;
+}
+.btn-facebook:hover { background: url(../images/facebook_hover.png) center / contain no-repeat; }
+.btn-twitter {
+	display: inline-block;
+	background: url(../images/twitter.png) center / contain no-repeat;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
+	margin-bottom: 16px;
+	margin-left: 8px;
+	cursor: pointer;
+	vertical-align: bottom;
+}
+.btn-twitter:hover { background: url(../images/twitter_hover.png) center / contain no-repeat; }
+.btn-fullscreen {
+	display: inline-block;
+	background: url(../images/fullscreen.png) center / contain no-repeat;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
+	margin-top: 16px;
+	margin-right: 16px;
+	cursor: pointer;
+}
+.btn-audio-on {
+	display: inline-block;
+	background: url(../images/volumeOn.png) center / contain no-repeat;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
+	margin-top: 16px;
+	margin-right: 8px;
+	cursor: pointer;
+}
+.btn-audio-off {
+	display: inline-block;
+	background: url(../images/volumeOff.png) center / contain no-repeat;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
+	margin-top: 16px;
+	margin-right: 8px;
+	cursor: pointer;
+}
+.btn-restart-large { 
+	background: url(../images/play.png) center / contain no-repeat;
+	width: 64px;
+	height: 64px;
+	width: 4rem;
+	height: 4rem;
+	margin: 0 16px;
+}
+.btn-restart-large:hover { background: url(../images/play_hover.png) center / contain no-repeat; }
+.btn-facebook-large { 
+	background: url(../images/facebook.png) center / contain no-repeat;
+	width: 64px;
+	height: 64px;
+	width: 4rem;
+	height: 4rem;
+	margin: 0 16px;
+}
+.btn-facebook-large:hover { background: url(../images/facebook_hover.png) center / contain no-repeat; }
+.btn-twitter-large {
+	background: url(../images/twitter.png) center / contain no-repeat;
+	width: 64px;
+	height: 64px;
+	width: 4rem;
+	height: 4rem;
+	margin: 0 16px;
+}
+.btn-twitter-large:hover { background: url(../images/twitter_hover.png) center / contain no-repeat; }
+
+.btn-credits {
+	width: 77px;
+	height: 12px;
+	margin: 16px;
+	color: white;
+	opacity: 0;
+	pointer-events: none;
+	background: url(../images/credits_s.png) center / contain no-repeat;
+	cursor: pointer;
+}
+.btn-credits:hover { color: red; }
+
+.btn-close {
+	display: inline-block;
+	background: url(../images/close.png) center / contain no-repeat;
+	width: 3rem;
+	height: 3rem;
+	width: 48px;
+	height: 48px;
+	margin-top: 16px;
+	margin-right: 16px;
+	cursor: pointer;
+	right: 0;
+}
+.btn-close:hover { background: url(../images/close_hover.png) center / contain no-repeat; }
+
+.credits-subtitle { font-family: 'Avenir Medium'; font-size: 14pt; }
+.credits-table { width: 80%; margin: 0 auto; table-layout: fixed; }
+.credits-role { font-family: 'Avenir UltraLight'; font-size: 10pt; text-align: right; padding-right: 8px; }
+.credits-name { text-align: left; padding-left: 8px; font-size: 10pt; vertical-align: text-top; }
+
+.harpersbazaar {
+	display: block;
+	margin: 0 auto;
+	width: 240px;
+	height: 21px;
+	background: url(../images/harpersbazaar.png) center / contain no-repeat no-repeat;
+}
+.presents {
+	display: block;
+	margin: 8px auto;
+	width: auto;
+	height: 16px;
+	background: url(../images/presents.png) center / contain no-repeat;
+}
+
+.blacksheeplive {
+	display: inline-block;
+	width: 230px;
+	height: 17px;
+	background: url(../images/blacksheeplive.png) center / contain no-repeat;
+}
+
+.blacksheeplive:hover {
+	background: url(../images/blacksheeplive_hover.png) center / contain no-repeat;
+}
