@@ -630,7 +630,7 @@ App.Content.Game = React.createClass({
 						dispatcher.dispatch({ type: 'hideScreamNow' });
 					}
 
-					if (avg > sensitivity + 0.08) {
+					if (avg > sensitivity + 0.0365) {
 						if (avg != this.prevAvg) {
 							video.pause();
 							video.playbackRate = 0;
@@ -645,11 +645,11 @@ App.Content.Game = React.createClass({
 					this.prevAvg = avg;
 
 					if (video.currentTime < 5) {
-						video.currentTime = 38.8;
+						video.currentTime = 36.3;
 						this.props.fadeAudio(-2);
 						this.setState({ game: STATE_WIN });
 						dispatcher.dispatch({ type: 'hideScreamNow' });
-					} else if (video.currentTime > 18.16) {
+					} else if (video.currentTime > 16) {
 						this.props.fadeAudio(-2);
 						this.setState({ game: STATE_LOSE });
 						dispatcher.dispatch({ type: 'hideScreamNow' });
@@ -660,7 +660,7 @@ App.Content.Game = React.createClass({
 					video.play();
 					break;
 				case STATE_LOSE:
-					if (video.currentTime >= 38) {
+					if (video.currentTime >= 36) {
 						video.pause();
 						window.setTimeout((function () {
 							video.currentTime = 0;
@@ -709,7 +709,7 @@ App.Content.End = React.createClass({
 					React.createElement('button', { className: 'btn-facebook-large', style: iconStyle, onClick: this.handleFacebook }),
 					React.createElement(
 						'a',
-						{ href: 'http://twitter.com/share?text=' + encodeURI('Harper\'s BAZAAR SG & BSL present: Scream Saver, an interactive Halloween film by The Kissinger Twins'), target: 'popup' },
+						{ href: 'http://twitter.com/share?text=Harper%27s%20BAZAAR%20SG%20%26%20BSL%20present%3A%20Scream%20Saver%2C%20an%20interactive%20Halloween%20film%20by%20The%20Kissinger%20Twins', target: 'popup' },
 						React.createElement('button', { className: 'btn-twitter-large', style: iconStyle })
 					)
 				)
@@ -750,10 +750,10 @@ App.Content.End = React.createClass({
 			margin: '40px auto'
 		}
 	},
-	handleFacebook: function handleFacebook() {
+	handleFacebook: function handleFacebook(evt) {
 		FB.ui({
 			method: 'feed',
-			link: 'http://harpersbazaar.com.sg/screamsaver',
+			link: 'http://www.harpersbazaar.com.sg/screamsaver',
 			description: 'Harper\'s BAZAAR SG & BSL present: Scream Saver, an interactive Halloween film by The Kissinger Twins'
 		});
 	},
@@ -1068,7 +1068,7 @@ App.Overlay = React.createClass({
 					'div',
 					{ className: 'valign-bottom text-left' },
 					React.createElement('button', { className: 'btn-facebook pointer-events', style: this.styles.facebook, onClick: this.handleFacebook }),
-					React.createElement('a', { className: 'btn-twitter pointer-events', href: 'http://twitter.com/share?text=' + encodeURI('Harper\'s BAZAAR SG & BSL present: Scream Saver, an interactive Halloween film by The Kissinger Twins'), target: 'popup' })
+					React.createElement('a', { className: 'btn-twitter pointer-events', href: 'http://twitter.com/share?text=Harper%27s%20BAZAAR%20SG%20%26%20BSL%20present%3A%20Scream%20Saver%2C%20an%20interactive%20Halloween%20film%20by%20The%20Kissinger%20Twins', target: 'popup' })
 				)
 			),
 			React.createElement(
@@ -1172,7 +1172,7 @@ App.Overlay = React.createClass({
 	handleFacebook: function handleFacebook(evt) {
 		FB.ui({
 			method: 'feed',
-			link: 'http://harpersbazaar.com.sg/screamsaver',
+			link: 'http://www.harpersbazaar.com.sg/screamsaver',
 			description: 'Harper\'s BAZAAR SG & BSL present: Scream Saver, an interactive Halloween film by The Kissinger Twins'
 		});
 	}
