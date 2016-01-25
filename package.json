@@ -1,0 +1,21 @@
+{
+  "name": "screamsaver",
+  "version": "0.1.0",
+  "description": "",
+  "main": "webpack.config.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/bbh-labs/screamsaver.git"
+  },
+  "author": "Jacky Boen",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/bbh-labs/screamsaver/issues"
+  },
+  "homepage": "https://github.com/bbh-labs/screamsaver#readme"
+}

@@ -1,25 +1,29 @@
-var React = require('react');
-var ReactDOM = require('react-dom');
-var Flux = require('flux');
-var screenfull = require('screenfull');
-var update = require('react-addons-update');
-var cx = require('classnames');
+'use strict';
 
-var dispatcher = new Flux.Dispatcher();
+let React = require('react');
+let ReactDOM = require('react-dom');
+let Flux = require('flux');
+let screenfull = require('screenfull');
+let update = require('react-addons-update');
+let cx = require('classnames');
 
-var video;
-var gameAudio;
-var sensitivity = 0;
+let dispatcher = new Flux.Dispatcher();
 
-var STATE_IDLE = 0,
+let video;
+let gameAudio;
+let sensitivity = 0;
+
+let STATE_IDLE = 0,
     STATE_BEGINNING = 1,
     STATE_PLAYING   = 2,
-    STATE_WIN = 3,
-    STATE_LOSE = 4;
+	STATE_FIRST_SCREAM = 3,
+	STATE_SECOND_SCREAM = 4,
+    STATE_WIN = 5,
+    STATE_LOSE = 6;
 
-var App = React.createClass({
+let App = React.createClass({
 	render: function() {
-		var loaded = this.state.loaded;
+		let loaded = this.state.loaded;
 		return (
 			<div>
 				<App.Audio ref='audio' {...this.state} />
@@ -58,7 +62,7 @@ var App = React.createClass({
 				break;
 			case 'imageLoaded':
 			case 'videoLoaded':
-				var loaded = this.state.loaded + 1;
+				let loaded = this.state.loaded + 1;
 				this.setState({ loaded: loaded });
 				break;
 			case 'showScreamNow':
@@ -93,7 +97,7 @@ var App = React.createClass({
 	fadeAudio: function(dir) {
 		window.clearTimeout(this.fadeAudioID);
 		this.fadeAudioID = window.setTimeout(function() {
-			var volume = this.state.volume;
+			let volume = this.state.volume;
 			if (dir > 0) {
 				volume = Math.min(volume + 0.033 * dir, 1);
 			} else {
@@ -187,9 +191,9 @@ App.Content.Background = React.createClass({
 
 App.Content.MainPage = React.createClass({
 	render: function() {
-		var show = this.props.step == 'mainpage';
-		var showInner = this.props.showInner;
-		var clickableClass = show ? 'pointer-events' : '';
+		let show = this.props.step == 'mainpage';
+		let showInner = this.props.showInner;
+		let clickableClass = show ? 'pointer-events' : '';
 		return (
 			<div style={m(this.styles.container, show && this.styles.show)}>
 				<div className='valign-container' style={m(this.styles.inner, this.styles.top, showInner && this.styles.showInner)}>
@@ -395,12 +399,11 @@ App.Content.Fade2 = React.createClass({
 
 App.Content.Game = React.createClass({
 	render: function() {
-		var showScreamNow = this.props.showScreamNow;
+		let showScreamNow = this.props.showScreamNow;
 		return (
 			<div style={m(this.styles.container, this.props.step == 'game' && this.styles.show)}>
-				<video ref='video' style={this.styles.video} preload='auto' muted={!this.props.audio} volume={0.1}>
-					<source src='videos/video.mp4' type='video/mp4' />
-					<source src='videos/video.ogv' type='video/ogg' />
+				<video ref='video' style={this.styles.video} preload='' muted={!this.props.audio} volume={0.1}>
+					<source src='videos/video2.mp4' type='video/mp4' />
 				</video>
 				<div className='valign-container' style={m(this.styles.screamNow, showScreamNow && this.styles.showScreamNow)}>
 					<div className='valign-top'>
@@ -410,6 +413,29 @@ App.Content.Game = React.createClass({
 			</div>
 		)
 	},
+	/*
+	render: function() {
+		let showScreamNow = this.props.showScreamNow;
+		let sources = [];
+		if (this.state.shouldAddSources) {
+			sources.push(<source src='videos/video.mp4' type='video/mp4' />);
+			sources.push(<source src='videos/video.ogv' type='video/ogg' />);
+		}
+		return (
+			<div style={m(this.styles.container, this.props.step == 'game' && this.styles.show)}>
+				<video ref='video' style={this.styles.video} preload='' muted={!this.props.audio} volume={0.1}>
+					{ sources }
+				</video>
+				<div className='valign-container' style={m(this.styles.screamNow, showScreamNow && this.styles.showScreamNow)}>
+					<div className='valign-top'>
+						<img src='images/scream_now.gif' width='100px' style={this.styles.image} />
+					</div>
+				</div>
+			</div>
+		)
+	},
+	*/
+	percent: 0,
 	styles: {
 		container: {
 			position: 'absolute',
@@ -450,10 +476,25 @@ App.Content.Game = React.createClass({
 		},
 	},
 	getInitialState: function() {
-		return { game: STATE_IDLE }
+		return {
+			game: STATE_IDLE,
+			shouldAddSources: false,
+			screams: 0,
+		}
 	},
 	componentDidMount: function() {
 		video = this.refs.video;
+
+		/*
+		let addSource = function(element, src, type) {
+			let source = document.createElement('source');
+			source.src = src;
+			source.type = type;
+			video.appendChild(source);
+		}
+		addSource(video, 'videos/video.mp4', 'video/mp4');
+		video.addEventListener('progress', this.progressHandler, false);
+		*/
 
 		video.addEventListener('loadeddata', function(e) {
 			dispatcher.dispatch({ type: 'videoLoaded' });
@@ -541,13 +582,13 @@ App.Content.Game = React.createClass({
 		requestAnimationFrame(this.draw);
 
 		// Calc elapsed time since last loop
-		var now = Date.now();
+		let now = Date.now();
 		this.elapsed = now - this.then;
 
-		var avg = 0;
+		let avg = 0;
 		this.analyser.getByteFrequencyData(this.dataArray);
-		for (var i = 0; i < this.bufferLength; i++) {
-			var v = this.dataArray[i] / 128.0;
+		for (let i = 0; i < this.bufferLength; i++) {
+			let v = this.dataArray[i] / 128.0;
 			avg += v;
 		}
 		avg /= this.bufferLength;
@@ -576,12 +617,19 @@ App.Content.Game = React.createClass({
 					dispatcher.dispatch({ type: 'hideScreamNow' });
 				}
 
+				let screams = this.state.screams;
 				if (avg > sensitivity + 0.0365) {
 					if (avg != this.prevAvg) {
 						video.pause();
 						video.playbackRate = 0;
 					}
-					video.currentTime = video.currentTime - this.fpsIntervalSec;
+					if (video.currentTime > 10) {
+						screams = 1;
+						this.setState({ screams: screams });
+					} else {
+						screams = 2;
+						this.setState({ screams: screams });
+					}
 				} else {
 					if (avg != this.prevAvg) {
 						video.playbackRate = 1;
@@ -589,6 +637,19 @@ App.Content.Game = React.createClass({
 					}
 				}
 				this.prevAvg = avg;
+
+				switch (this.state.screams) {
+				case 1:
+					if (video.currentTime > 10) {
+						video.currentTime = video.currentTime - this.fpsIntervalSec;
+					} else {
+						video.playbackRate = 0;
+					}
+					break;
+				case 2:
+					video.currentTime = video.currentTime - this.fpsIntervalSec;
+					break;
+				}
 
 				if (video.currentTime < 5) {
 					video.currentTime = 36.3;
@@ -616,7 +677,36 @@ App.Content.Game = React.createClass({
 			}
 		}
 	},
+	progressHandler: function(event) {
+		if (video.duration) {
+			let percent = (video.buffered.end(0) / video.duration) * 100;
+			if (percent >= 100) {
+				video.currentTime = 0;
+				dispatcher.dispatch({ type: 'videoLoaded' });
+			} else {
+				//video.currentTime += (video.currentTime + Math.random() * 3) % video.duration;
+				video.currentTime += 2;
+			}
+			dispatcher.dispatch({ type: 'videoLoadProgress', progress: percent.toFixed(0) });
+		}
+		/*
+		if (video.duration) {
+			let newPercent = (video.buffered.end(0) / video.duration) * 100;
+			if (newPercent > this.percent) {
+				this.percent = newPercent;
+				if (this.percent >= 100) {
+					dispatcher.dispatch({ type: 'videoLoaded' });
+				} else {
+					//video.currentTime += Math.random() * 3;
+					video.currentTime += 1;
+				}
+				dispatcher.dispatch({ type: 'videoLoadProgress', progress: this.percent.toFixed(0) });
+			}
+		}
+		*/
+	},
 	start: function() {
+		this.setState({ screams: 0 });
 		video.currentTime = 0;
 		sensitivity = 0;
 		this.prevAvg = 0;
@@ -634,9 +724,9 @@ App.Content.Game = React.createClass({
 
 App.Content.End = React.createClass({
 	render: function() {
-		var step = this.props.step;
-		var bShouldShow = step === 'win' || step === 'lose';
-		var iconStyle = m(this.styles.image, bShouldShow && { pointerEvent: 'auto', cursor: 'pointer' });
+		let step = this.props.step;
+		let bShouldShow = step === 'win' || step === 'lose';
+		let iconStyle = m(this.styles.image, bShouldShow && { pointerEvent: 'auto', cursor: 'pointer' });
 		return (
 			<div id='end' style={m(this.styles.container, bShouldShow && this.styles.show, this.props.showCredits && this.styles.none)}>
 				<div className='valign-container' style={this.styles.inner}>
@@ -702,9 +792,9 @@ App.Content.End = React.createClass({
 
 App.Overlay = React.createClass({
 	render: function() {
-		var showCredits = this.props.showCredits;
-		var hideStyle = showCredits && this.styles.hide;
-		var creditsButtonStyle = showCredits ? 'pointer-events' : '';
+		let showCredits = this.props.showCredits;
+		let hideStyle = showCredits && this.styles.hide;
+		let creditsButtonStyle = showCredits ? 'pointer-events' : '';
 		return (
 			<div className='no-pointer-events' style={m(this.styles.container, this.props.showInner && this.styles.show)}>
 				<div className='valign-container' style={m(this.styles.inner, this.styles.creditsContainer, showCredits && this.styles.showCredits)}>
@@ -894,7 +984,7 @@ App.Overlay = React.createClass({
 		dispatcher.dispatch({ type: 'showCredits' });
 	},
 	handleFullscreen: function(evt) {
-		var fullscreen = this.state.fullscreen;
+		let fullscreen = this.state.fullscreen;
 		if (screenfull.enabled) {
 			screenfull.toggle();
 			this.setState({ fullscreen: !fullscreen });
@@ -925,6 +1015,7 @@ App.LoadingScreen = React.createClass({
 				<div className='valign-container' style={this.styles.inner}>
 					<div className='valign text-center'>
 						<img src='images/loader.gif' style={this.styles.loader} />
+						{/* <p>{ this.state.progress }%</p> */}
 					</div>
 				</div>
 				<div className='valign-container' style={this.styles.inner}>
@@ -969,9 +1060,24 @@ App.LoadingScreen = React.createClass({
 			paddingBottom: '16px',
 		},
 	},
+	getInitialState: function() {
+		return { progress: 0 }
+	},
+	componentDidMount: function() {
+		this.listenerID = dispatcher.register(function(payload) {
+			switch (payload.type) {
+			case 'videoLoadProgress':
+				this.setState({ progress: payload.progress });
+				break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function() {
+		dispatcher.unregister(this.listenerID);
+	},
 });
 
-var Unsupported = React.createClass({
+let Unsupported = React.createClass({
 	render: function() {
 		return (
 			<div className='valign-container' style={this.styles.container}>
@@ -998,7 +1104,7 @@ function m(a, b, c) {
 	a = a ? a : {};
 	b = b ? b : {};
 	c = c ? c : {};
-	var ab = update(a, { $merge: b })
+	let ab = update(a, { $merge: b })
 	return update(ab, { $merge: c });
 }
 

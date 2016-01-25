@@ -11,15 +11,17 @@ var cx = require('classnames');
 
 var dispatcher = new Flux.Dispatcher();
 
-var video;
-var gameAudio;
+var video = undefined;
+var gameAudio = undefined;
 var sensitivity = 0;
 
 var STATE_IDLE = 0,
     STATE_BEGINNING = 1,
     STATE_PLAYING = 2,
-    STATE_WIN = 3,
-    STATE_LOSE = 4;
+    STATE_FIRST_SCREAM = 3,
+    STATE_SECOND_SCREAM = 4,
+    STATE_WIN = 5,
+    STATE_LOSE = 6;
 
 var App = React.createClass({
 	displayName: 'App',
@@ -447,9 +449,8 @@ App.Content.Game = React.createClass({
 			{ style: m(this.styles.container, this.props.step == 'game' && this.styles.show) },
 			React.createElement(
 				'video',
-				{ ref: 'video', style: this.styles.video, preload: 'auto', muted: !this.props.audio, volume: 0.1 },
-				React.createElement('source', { src: 'videos/video.mp4', type: 'video/mp4' }),
-				React.createElement('source', { src: 'videos/video.ogv', type: 'video/ogg' })
+				{ ref: 'video', style: this.styles.video, preload: '', muted: !this.props.audio, volume: 0.1 },
+				React.createElement('source', { src: 'videos/video2.mp4', type: 'video/mp4' })
 			),
 			React.createElement(
 				'div',
@@ -462,6 +463,29 @@ App.Content.Game = React.createClass({
 			)
 		);
 	},
+	/*
+ render: function() {
+ 	let showScreamNow = this.props.showScreamNow;
+ 	let sources = [];
+ 	if (this.state.shouldAddSources) {
+ 		sources.push(<source src='videos/video.mp4' type='video/mp4' />);
+ 		sources.push(<source src='videos/video.ogv' type='video/ogg' />);
+ 	}
+ 	return (
+ 		<div style={m(this.styles.container, this.props.step == 'game' && this.styles.show)}>
+ 			<video ref='video' style={this.styles.video} preload='' muted={!this.props.audio} volume={0.1}>
+ 				{ sources }
+ 			</video>
+ 			<div className='valign-container' style={m(this.styles.screamNow, showScreamNow && this.styles.showScreamNow)}>
+ 				<div className='valign-top'>
+ 					<img src='images/scream_now.gif' width='100px' style={this.styles.image} />
+ 				</div>
+ 			</div>
+ 		</div>
+ 	)
+ },
+ */
+	percent: 0,
 	styles: {
 		container: {
 			position: 'absolute',
@@ -502,10 +526,25 @@ App.Content.Game = React.createClass({
 		}
 	},
 	getInitialState: function getInitialState() {
-		return { game: STATE_IDLE };
+		return {
+			game: STATE_IDLE,
+			shouldAddSources: false,
+			screams: 0
+		};
 	},
 	componentDidMount: function componentDidMount() {
 		video = this.refs.video;
+
+		/*
+  let addSource = function(element, src, type) {
+  	let source = document.createElement('source');
+  	source.src = src;
+  	source.type = type;
+  	video.appendChild(source);
+  }
+  addSource(video, 'videos/video.mp4', 'video/mp4');
+  video.addEventListener('progress', this.progressHandler, false);
+  */
 
 		video.addEventListener('loadeddata', (function (e) {
 			dispatcher.dispatch({ type: 'videoLoaded' });
@@ -630,12 +669,19 @@ App.Content.Game = React.createClass({
 						dispatcher.dispatch({ type: 'hideScreamNow' });
 					}
 
+					var screams = this.state.screams;
 					if (avg > sensitivity + 0.0365) {
 						if (avg != this.prevAvg) {
 							video.pause();
 							video.playbackRate = 0;
 						}
-						video.currentTime = video.currentTime - this.fpsIntervalSec;
+						if (video.currentTime > 10) {
+							screams = 1;
+							this.setState({ screams: screams });
+						} else {
+							screams = 2;
+							this.setState({ screams: screams });
+						}
 					} else {
 						if (avg != this.prevAvg) {
 							video.playbackRate = 1;
@@ -643,6 +689,19 @@ App.Content.Game = React.createClass({
 						}
 					}
 					this.prevAvg = avg;
+
+					switch (this.state.screams) {
+						case 1:
+							if (video.currentTime > 10) {
+								video.currentTime = video.currentTime - this.fpsIntervalSec;
+							} else {
+								video.playbackRate = 0;
+							}
+							break;
+						case 2:
+							video.currentTime = video.currentTime - this.fpsIntervalSec;
+							break;
+					}
 
 					if (video.currentTime < 5) {
 						video.currentTime = 36.3;
@@ -672,7 +731,36 @@ App.Content.Game = React.createClass({
 			}
 		}
 	},
+	progressHandler: function progressHandler(event) {
+		if (video.duration) {
+			var percent = video.buffered.end(0) / video.duration * 100;
+			if (percent >= 100) {
+				video.currentTime = 0;
+				dispatcher.dispatch({ type: 'videoLoaded' });
+			} else {
+				//video.currentTime += (video.currentTime + Math.random() * 3) % video.duration;
+				video.currentTime += 2;
+			}
+			dispatcher.dispatch({ type: 'videoLoadProgress', progress: percent.toFixed(0) });
+		}
+		/*
+  if (video.duration) {
+  	let newPercent = (video.buffered.end(0) / video.duration) * 100;
+  	if (newPercent > this.percent) {
+  		this.percent = newPercent;
+  		if (this.percent >= 100) {
+  			dispatcher.dispatch({ type: 'videoLoaded' });
+  		} else {
+  			//video.currentTime += Math.random() * 3;
+  			video.currentTime += 1;
+  		}
+  		dispatcher.dispatch({ type: 'videoLoadProgress', progress: this.percent.toFixed(0) });
+  	}
+  }
+  */
+	},
 	start: function start() {
+		this.setState({ screams: 0 });
 		video.currentTime = 0;
 		sensitivity = 0;
 		this.prevAvg = 0;
@@ -1238,6 +1326,21 @@ App.LoadingScreen = React.createClass({
 			marginTop: '16px',
 			paddingBottom: '16px'
 		}
+	},
+	getInitialState: function getInitialState() {
+		return { progress: 0 };
+	},
+	componentDidMount: function componentDidMount() {
+		this.listenerID = dispatcher.register((function (payload) {
+			switch (payload.type) {
+				case 'videoLoadProgress':
+					this.setState({ progress: payload.progress });
+					break;
+			}
+		}).bind(this));
+	},
+	componentWillUnmount: function componentWillUnmount() {
+		dispatcher.unregister(this.listenerID);
 	}
 });
 
