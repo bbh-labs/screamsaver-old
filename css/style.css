@@ -1,8 +1,30 @@
-* { padding: 0; margin: 0; border: 0; color: white; }
-html, body, #root { width: 100%; height: 100%; background: black; }
-body, #root { position: relative; }
-div { -webkit-user-select: none; -o-user-select: none; -moz-user-select: none; user-select: none; }
-*:focus { outline: none }
+* {
+	padding: 0;
+	margin: 0;
+	border: 0;
+	color: white;
+}
+
+*:focus {
+	outline: none;
+}
+
+html, body, #root, #root > div {
+	width: 100%;
+	height: 100%;
+	background: black;
+}
+
+body, #root, #root > div {
+	position: relative;
+}
+
+div {
+	-webkit-user-select: none;
+	-o-user-select: none;
+	-moz-user-select: none;
+	user-select: none;
+}
 
 @font-face {
 	font-family: 'Avenir Medium';
@@ -18,24 +40,310 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 	font-family: 'Avenir UltraLight', Helvetica, Arial, sans-serif;
 }
 
-.valign-container { display: table; }
-.valign { display: table-cell; vertical-align: middle; }
-.valign-top { display: table-cell; vertical-align: top; }
-.valign-bottom { display: table-cell; vertical-align: bottom; }
-.text-left { text-align: left; }
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.black-text { color: black; }
-.pointer-events { pointer-events: auto !important }
-.no-pointer-events { pointer-events: none !important }
-.fb-share-button { margin: 0 16px; bottom: 5px; }
-.font-medium { font-family: 'Avenir Medium'; font-weight: 100; }
+.container {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+}
 
-.btn-start { background: url(../images/play.png) center / contain no-repeat; }
-.btn-start:hover { background: url(../images/play_hover.png) center / contain no-repeat; }
-.btn-facebook { 
+.background {
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	background: url(../images/home.jpg) center / cover;
+	opacity: 0;
+}
+
+.background--active {
+	opacity: 1;
+}
+
+.background-image {
+	display: none;
+}
+
+.mainpage {
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.mainpage--active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.mainpage-inner {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	opacity: 0;
+	transition: opacity 2s;
+	-webkit-transition: opacity 2s;
+	-moz-transition: opacity 2s;
+	-o-transition: opacity 2s;
+}
+
+.mainpage-inner--active {
+	opacity: 1;
+}
+
+.mainpage-inner-top {
+	box-sizing: border-box;
+	padding-top: 1.5rem;
+}
+
+.mainpage-inner-mid {
+	box-sizing: border-box;
+	padding-top: 1rem;
+}
+
+.mainpage-inner-bottom {
+	box-sizing: border-box;
+	padding-bottom: 1rem;
+	pointer-events: none;
+}
+
+.mainpage-title {
+	display: block;
+	margin: 0 auto;
+	max-width: 70%;
+	object-fit: contain;
+}
+
+.mainpage-subtitle {
+	font-family: Avenir UltraLight;
+	font-size: 2.2vmax;
+	font-weight: 100;
+	paddingTop: 1rem;
+}
+
+.mainpage-start {
+	background: url(../images/play.png) center / contain no-repeat; 
+	width: 4rem;
+	height: 4rem;
+	marginTop: 2rem;
+	cursor: pointer;
+}
+
+.mainpage-start:hover {
+	background: url(../images/play_hover.png) center / contain no-repeat; 
+}
+
+.fade1 {
+	background: black;
+	opacity: 0;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+}
+
+.fade1--active {
+	opacity: 1;
+}
+
+.instruction {
+	opacity: 0;
+	transition: opacity .2s ease-in; opacity 1s ease-out;
+	-webkit-transition: opacity .2s ease-in; opacity 1s ease-out;
+	-moz-transition: opacity .2s ease-in; opacity 1s ease-out;
+	-o-transition: opacity .2s ease-in; opacity 1s ease-out;
+	pointer-events: none;
+}
+
+.instruction--active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.instruction-text {
+	display: block;
+	width: 70%;
+	margin: 0 auto;
+}
+
+.instruction-text-below {
+	display: block;
+	margin: 0 auto;
+	paddingBottom: 50px;
+	height: 14px;
+}
+
+.fade2 {
+	background: black;
+	opacity: 0;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+}
+
+.fade2--active {
+	opacity: 1;
+}
+
+.game {
+	opacity: 0;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	pointer-events: none;
+}
+
+.game--active {
+	opacity: 1;
+}
+
+.game-video {
+	object-fit: cover;
+}
+
+.game-scream-now {
+	opacity: 0;
+	transition: opacity .4s;
+	-webkit-transition: opacity .4s;
+	-moz-transition: opacity .4s;
+	-o-transition: opacity .4s;
+}
+
+.game-scream-now--active {
+	opacity: 1;
+}
+
+.game-scream-now-image {
+	margin-top: 16px;
+	margin-left: 16px;
+}
+
+.end {
+	opacity: 0;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	pointer-events: none;
+}
+
+.end--active {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+.end--show-credits {
+	display: none;
+}
+
+.end-icon {
+	width: 48px;
+	margin: 0 16px;
+}
+
+.end-text {
+	display: block;
+	margin: 40px auto;
+	max-width: 70%;
+	object-fit: contain;
+}
+
+.overlay {
+	opacity: 0;
+	transition: opacity .2s;
+	-webkit-transition: opacity .2s;
+	-moz-transition: opacity .2s;
+	-o-transition: opacity .2s;
+	pointer-events: none;
+}
+
+.overlay--active {
+	opacity: 1;
+}
+
+.overlay-credits-container {
+	position: absolute;
+	display: none;
+	opacity: 0;
+	transition: opacity .3s;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+	background: black;
+}
+
+.show-credits {
+	display: table !important;
+	opacity: 1 !important;
+}
+
+.overlay-credits-inner {
+	position: relative;
+	margin: 0 auto;
+	height: 100%;
+	padding: 16px;
+	overflow-y: auto;
+}
+
+.overlay-credits-title {
+	display: block;
+	max-height: 3.5rem;
+	margin: 20px auto;
+}
+
+.close-credits-container {
+	display: none;
+	opacity: 0;
+	transition: opacity .3s;
+	-webkit-transition: opacity .3s;
+	-moz-transition: opacity .3s;
+	-o-transition: opacity .3s;
+}
+
+.close-credits-button {
+	position: absolute;
 	display: inline-block;
-	background: url(../images/facebook.png) center / contain no-repeat;
+	width: 3rem;
+	height: 3rem;
+	width: 48px;
+	height: 48px;
+	margin-top: 16px;
+	margin-right: 16px;
+	cursor: pointer;
+	pointer-events: auto;
+	right: 0;
+	background: url(../images/close.png) center / contain no-repeat;
+}
+
+.close-button:hover {
+	background: url(../images/close_hover.png) center / contain no-repeat;
+}
+
+.credits-button {
+	width: 77px;
+	height: 12px;
+	margin: 16px;
+	color: white;
+	pointer-events: none;
+	cursor: pointer;
+	pointer-events: auto;
+	background: url(../images/credits_s.png) center / contain no-repeat;
+}
+
+.credits-button:hover {
+	color: red;
+}
+
+.credits-hide {
+	display: none !important;
+	pointer-events: none !important;
+}
+
+.facebook-button { 
+	display: inline-block;
 	width: 1.5rem;
 	height: 1.5rem;
 	width: 24px;
@@ -43,11 +351,16 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 	margin-bottom: 16px;
 	margin-left: 16px;
 	cursor: pointer;
+	pointer-events: auto;
+	background: url(../images/facebook.png) center / contain no-repeat;
 }
-.btn-facebook:hover { background: url(../images/facebook_hover.png) center / contain no-repeat; }
-.btn-twitter {
+
+.facebook-button:hover {
+	background: url(../images/facebook_hover.png) center / contain no-repeat;
+}
+
+.twitter-button {
 	display: inline-block;
-	background: url(../images/twitter.png) center / contain no-repeat;
 	width: 1.5rem;
 	height: 1.5rem;
 	width: 24px;
@@ -56,11 +369,16 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 	margin-left: 8px;
 	cursor: pointer;
 	vertical-align: bottom;
+	pointer-events: auto;
+	background: url(../images/twitter.png) center / contain no-repeat;
 }
-.btn-twitter:hover { background: url(../images/twitter_hover.png) center / contain no-repeat; }
-.btn-fullscreen {
+
+.twitter-button:hover {
+	background: url(../images/twitter_hover.png) center / contain no-repeat;
+}
+
+.fullscreen-button {
 	display: inline-block;
-	background: url(../images/fullscreen.png) center / contain no-repeat;
 	width: 1.5rem;
 	height: 1.5rem;
 	width: 24px;
@@ -68,99 +386,154 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 	margin-top: 16px;
 	margin-right: 16px;
 	cursor: pointer;
+	pointer-events: auto;
+	background: url(../images/fullscreen.png) center / contain no-repeat;
 }
-.btn-audio-on {
-	display: inline-block;
-	background: url(../images/volumeOn.png) center / contain no-repeat;
-	width: 1.5rem;
-	height: 1.5rem;
-	width: 24px;
-	height: 24px;
-	margin-top: 16px;
-	margin-right: 8px;
-	cursor: pointer;
-}
-.btn-audio-off {
-	display: inline-block;
-	background: url(../images/volumeOff.png) center / contain no-repeat;
-	width: 1.5rem;
-	height: 1.5rem;
-	width: 24px;
-	height: 24px;
-	margin-top: 16px;
-	margin-right: 8px;
-	cursor: pointer;
-}
-.btn-restart-large { 
-	background: url(../images/play.png) center / contain no-repeat;
-	width: 64px;
-	height: 64px;
-	width: 4rem;
-	height: 4rem;
-	margin: 0 16px;
-}
-.btn-restart-large:hover { background: url(../images/play_hover.png) center / contain no-repeat; }
-.btn-facebook-large { 
-	background: url(../images/facebook.png) center / contain no-repeat;
-	width: 64px;
-	height: 64px;
-	width: 4rem;
-	height: 4rem;
-	margin: 0 16px;
-}
-.btn-facebook-large:hover { background: url(../images/facebook_hover.png) center / contain no-repeat; }
-.btn-twitter-large {
-	background: url(../images/twitter.png) center / contain no-repeat;
-	width: 64px;
-	height: 64px;
-	width: 4rem;
-	height: 4rem;
-	margin: 0 16px;
-}
-.btn-twitter-large:hover { background: url(../images/twitter_hover.png) center / contain no-repeat; }
 
-.btn-credits {
-	width: 77px;
-	height: 12px;
-	margin: 16px;
-	color: white;
+.loading-screen {
+	display: flex;
+	background: black;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	opacity: 1;
+}
+
+.loading-screen--disabled {
 	opacity: 0;
 	pointer-events: none;
-	background: url(../images/credits_s.png) center / contain no-repeat;
-	cursor: pointer;
 }
-.btn-credits:hover { color: red; }
 
-.btn-close {
+.loading-screen-loader {
+	display: block;
+	margin: 0 auto;
+	width: 64px;
+	height: 64px;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+	opacity: 1;
+}
+
+.loading-screen-gate {
+	display: block;
+	opacity: 1;
+	object-fit: contain;
+	max-height: 100%;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+}
+
+.loading-screen-loader--disabled,
+.loading-screen-gate--disabled {
+	opacity: 0;
+}
+
+.loading-screen-preload-text {
+	height: 17px;
+	marginTop: 16px;
+	paddingBottom: 16px;
+}
+
+.unsupported-text {
+	display: block;
+	margin: 0 auto;
+	width: 80%;
+}
+
+.on-audio-button {
 	display: inline-block;
-	background: url(../images/close.png) center / contain no-repeat;
-	width: 3rem;
-	height: 3rem;
-	width: 48px;
-	height: 48px;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
 	margin-top: 16px;
-	margin-right: 16px;
+	margin-right: 8px;
 	cursor: pointer;
-	right: 0;
+	background: url(../images/volumeOn.png) center / contain no-repeat;
 }
-.btn-close:hover { background: url(../images/close_hover.png) center / contain no-repeat; }
 
+.off-audio-button {
+	display: inline-block;
+	width: 1.5rem;
+	height: 1.5rem;
+	width: 24px;
+	height: 24px;
+	margin-top: 16px;
+	margin-right: 8px;
+	cursor: pointer;
+	background: url(../images/volumeOff.png) center / contain no-repeat;
+}
+
+.large-restart-button { 
+	width: 64px;
+	height: 64px;
+	width: 4rem;
+	height: 4rem;
+	margin: 0 16px;
+	cursor: pointer;
+	background: url(../images/play.png) center / contain no-repeat;
+}
+
+.large-restart-button:hover {
+	background: url(../images/play_hover.png) center / contain no-repeat;
+}
+
+.large-facebook-button { 
+	width: 64px;
+	height: 64px;
+	width: 4rem;
+	height: 4rem;
+	margin: 0 16px;
+	cursor: pointer;
+	background: url(../images/facebook.png) center / contain no-repeat;
+}
+
+.large-facebook-button:hover {
+	background: url(../images/facebook_hover.png) center / contain no-repeat;
+}
+
+.large-twitter-button {
+	width: 64px;
+	height: 64px;
+	width: 4rem;
+	height: 4rem;
+	margin: 0 16px;
+	cursor: pointer;
+	background: url(../images/twitter.png) center / contain no-repeat;
+}
+
+.large-twitter-button:hover {
+	background: url(../images/twitter_hover.png) center / contain no-repeat;
+}
+
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-center { text-align: center; }
+.black-text { color: black; }
+.pointer-events { pointer-events: auto !important }
+.no-pointer-events { pointer-events: none !important }
+.fb-share-button { margin: 0 16px; bottom: 5px; }
+.font-medium { font-family: 'Avenir Medium'; font-weight: 100; }
 .credits-subtitle { font-family: 'Avenir Medium'; font-size: 14pt; }
 .credits-table { width: 80%; margin: 0 auto; table-layout: fixed; }
 .credits-role { font-family: 'Avenir UltraLight'; font-size: 10pt; text-align: right; padding-right: 8px; }
 .credits-name { text-align: left; padding-left: 8px; font-size: 10pt; vertical-align: text-top; }
 
 .harpersbazaar {
-	display: block;
-	margin: 0 auto;
+	margin: 0;
 	width: 240px;
 	height: 21px;
-	background: url(../images/harpersbazaar.png) center / contain no-repeat no-repeat;
+	background: url(../images/harpersbazaar.png) center / contain no-repeat;
 }
+
 .presents {
-	display: block;
-	margin: 8px auto;
-	width: auto;
+	margin: 8px;
+	width: 82px;
 	height: 16px;
 	background: url(../images/presents.png) center / contain no-repeat;
 }
