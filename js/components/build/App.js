@@ -342,26 +342,26 @@ App.Content.Game = React.createClass({
 					return;
 				}
 
-				// retrieve the current sample rate to be used for WAV packaging
+				// Retrieve the current sample rate to be used for WAV packaging
 				this.sampleRate = this.audioContext.sampleRate;
 
-				// creates a gain node
+				// Creates a gain node
 				this.volume = this.audioContext.createGain();
 
-				// creates an audio node from the microphone incoming stream
+				// Creates an audio node from the microphone incoming stream
 				this.audioInput = this.audioContext.createMediaStreamSource(stream);
 
-				// connect the stream to the gain node
+				// Connect the stream to the gain node
 				this.audioInput.connect(this.volume);
 
-				// creates analyzer
+				// Creates analyzer
 				this.analyser = this.audioContext.createAnalyser();
 				this.analyser.fftSize = 2048;
 				this.bufferLength = this.analyser.frequencyBinCount;
 				this.dataArray = new Uint8Array(this.bufferLength);
 				this.analyser.getByteFrequencyData(this.dataArray);
 
-				// connect gain to analyzer node
+				// Connect gain to analyzer node
 				this.volume.connect(this.analyser);
 
 				dispatcher.dispatch({ type: 'goto', step: 'fade2' });
