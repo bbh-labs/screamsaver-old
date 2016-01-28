@@ -548,7 +548,7 @@ App.Overlay = React.createClass({
 			{ className: cx('overlay flex one container', this.props.showInner && 'overlay--active') },
 			React.createElement(
 				'div',
-				{ className: cx('overlay-credits-container flex one justify-center align-center', showCredits && 'show-credits') },
+				{ className: cx('overlay-credits-container flex one container justify-center align-center', showCredits && 'show-credits') },
 				React.createElement(
 					'div',
 					{ className: 'overlay-credits-inner' },
@@ -909,7 +909,7 @@ App.LoadingScreen = React.createClass({
 			React.createElement(
 				'div',
 				{ className: 'flex one container justify-center align-end' },
-				React.createElement('img', { className: 'loading-screen-preload-text', src: 'images/preload_text.png' })
+				React.createElement('img', { className: cx('loading-screen-preload-text', this.state.state > 0 && 'loading-screen-preload-text--disabled'), src: 'images/preload_text.png' })
 			)
 		);
 	},
@@ -996,6 +996,11 @@ function hasGetUserMedia() {
 }
 
 if (hasGetUserMedia()) {
+	window.addEventListener('keyup', function (event) {
+		event.preventDefault();
+		event.stopPropagation();
+	});
+
 	ReactDOM.render(React.createElement(App, null), document.getElementById('root'));
 } else {
 	ReactDOM.render(React.createElement(Unsupported, null), document.getElementById('root'));

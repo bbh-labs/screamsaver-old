@@ -498,7 +498,7 @@ App.Overlay = React.createClass({
 		let showCreditsButton = this.props.step == 'win' || this.props.step == 'lose';
 		return (
 			<div className={cx('overlay flex one container', this.props.showInner && 'overlay--active')}>
-				<div className={cx('overlay-credits-container flex one justify-center align-center', showCredits && 'show-credits')}>
+				<div className={cx('overlay-credits-container flex one container justify-center align-center', showCredits && 'show-credits')}>
 					<div className='overlay-credits-inner'>
 						<img className='overlay-credits-title' src='images/credits.png' />
 						<br/>
@@ -664,7 +664,7 @@ App.LoadingScreen = React.createClass({
 					{ elem }
 				</div>
 				<div className='flex one container justify-center align-end'>
-					<img className='loading-screen-preload-text' src='images/preload_text.png' />
+					<img className={cx('loading-screen-preload-text', this.state.state > 0 && 'loading-screen-preload-text--disabled')} src='images/preload_text.png' />
 				</div>
 			</div>
 		)
@@ -748,6 +748,11 @@ function hasGetUserMedia() {
 }
 
 if (hasGetUserMedia()) {
+	window.addEventListener('keyup', function(event) {
+		event.preventDefault();
+		event.stopPropagation();
+	});
+
 	ReactDOM.render(<App />, document.getElementById('root'));
 } else {
 	ReactDOM.render(<Unsupported />, document.getElementById('root'));

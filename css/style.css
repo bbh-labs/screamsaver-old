@@ -169,8 +169,7 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 
 .instruction-text-below {
 	display: block;
-	margin: 0 auto;
-	paddingBottom: 50px;
+	margin: 16px auto;
 	height: 14px;
 }
 
@@ -435,8 +434,16 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 
 .loading-screen-preload-text {
 	height: 17px;
-	marginTop: 16px;
-	paddingBottom: 16px;
+	opacity: 1;
+	margin-bottom: 16px;
+	transition: opacity 1s;
+	-webkit-transition: opacity 1s;
+	-moz-transition: opacity 1s;
+	-o-transition: opacity 1s;
+}
+
+.loading-screen-preload-text--disabled {
+	opacity: 0;
 }
 
 .unsupported-text {
