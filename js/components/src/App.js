@@ -243,6 +243,7 @@ App.Content.Game = React.createClass({
 		return (
 			<div className={cx('game container', this.props.step == 'game' && 'game--active')}>
 				<video ref='video' className='container game-video' preload='' muted={!this.props.audio} volume={0.1}>
+					<source src='videos/video.ogv' type='video/ogg' />
 					<source src='videos/video.mp4' type='video/mp4' />
 				</video>
 				<div className={cx('game-scream-now flex one container align-start', showScreamNow && 'game-scream-now--active')}>

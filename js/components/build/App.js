@@ -47,7 +47,7 @@ var App = React.createClass({
 		};
 	},
 	componentDidMount: function componentDidMount() {
-		this.listenerID = dispatcher.register((function (payload) {
+		this.listenerID = dispatcher.register(function (payload) {
 			switch (payload.type) {
 				case 'goto':
 					if (payload.step == 'win') {
@@ -83,22 +83,22 @@ var App = React.createClass({
 					this.setState({ audio: !this.state.audio });
 					break;
 			}
-		}).bind(this));
+		}.bind(this));
 
-		window.setTimeout((function () {
+		window.setTimeout(function () {
 			this.setState({ step: 'mainpage' });
-		}).bind(this), 1000);
+		}.bind(this), 1000);
 
-		window.setTimeout((function () {
+		window.setTimeout(function () {
 			this.setState({ showInner: true });
-		}).bind(this), 2000);
+		}.bind(this), 2000);
 	},
 	componentWillUnmount: function componentWillUnmount() {
 		dispatcher.unregister(this.listenerID);
 	},
 	fadeAudio: function fadeAudio(dir) {
 		window.clearTimeout(this.fadeAudioID);
-		this.fadeAudioID = window.setTimeout((function () {
+		this.fadeAudioID = window.setTimeout(function () {
 			var volume = this.state.volume;
 			if (dir > 0) {
 				volume = Math.min(volume + 0.033 * dir, 1);
@@ -109,7 +109,7 @@ var App = React.createClass({
 			if (volume > 0 || volume < 1) {
 				this.fadeAudio(dir);
 			}
-		}).bind(this), 33);
+		}.bind(this), 33);
 	}
 });
 
@@ -125,9 +125,9 @@ App.Audio = React.createClass({
 	},
 	componentDidMount: function componentDidMount() {
 		gameAudio = this.refs.game;
-		setTimeout((function () {
+		setTimeout(function () {
 			gameAudio.play();
-		}).bind(this), 1000);
+		}.bind(this), 1000);
 	},
 	componentDidUpdate: function componentDidUpdate() {
 		gameAudio.volume = this.props.volume;
@@ -220,9 +220,9 @@ App.Content.Fade1 = React.createClass({
 	},
 	componentDidUpdate: function componentDidUpdate() {
 		if (this.props.step == 'fade1') {
-			this.timeoutID = window.setTimeout((function () {
+			this.timeoutID = window.setTimeout(function () {
 				dispatcher.dispatch({ type: 'goto', step: 'instruction' });
-			}).bind(this), 1500);
+			}.bind(this), 1500);
 		} else {
 			window.clearTimeout(this.timeoutID);
 		}
@@ -258,9 +258,9 @@ App.Content.Fade2 = React.createClass({
 	},
 	componentDidUpdate: function componentDidUpdate() {
 		if (this.props.step == 'fade2') {
-			this.timeoutID = window.setTimeout((function () {
+			this.timeoutID = window.setTimeout(function () {
 				dispatcher.dispatch({ type: 'goto', step: 'game' });
-			}).bind(this), 1000);
+			}.bind(this), 1000);
 		} else {
 			window.clearTimeout(this.timeoutID);
 		}
@@ -278,6 +278,7 @@ App.Content.Game = React.createClass({
 			React.createElement(
 				'video',
 				{ ref: 'video', className: 'container game-video', preload: '', muted: !this.props.audio, volume: 0.1 },
+				React.createElement('source', { src: 'videos/video.ogv', type: 'video/ogg' }),
 				React.createElement('source', { src: 'videos/video.mp4', type: 'video/mp4' })
 			),
 			React.createElement(
@@ -298,18 +299,18 @@ App.Content.Game = React.createClass({
 	componentDidMount: function componentDidMount() {
 		video = this.refs.video;
 
-		video.addEventListener('loadeddata', (function (e) {
+		video.addEventListener('loadeddata', function (e) {
 			dispatcher.dispatch({ type: 'videoLoaded' });
-		}).bind(this));
+		}.bind(this));
 
-		video.addEventListener('ended', (function (e) {
+		video.addEventListener('ended', function (e) {
 			video.pause();
-			window.setTimeout((function () {
+			window.setTimeout(function () {
 				video.currentTime = 0;
-			}).bind(this), 1000);
+			}.bind(this), 1000);
 			dispatcher.dispatch({ type: 'goto', step: 'win' });
 			this.setState({ game: STATE_IDLE });
-		}).bind(this));
+		}.bind(this));
 
 		video.load();
 	},
@@ -332,7 +333,7 @@ App.Content.Game = React.createClass({
 					},
 					'optional': []
 				}
-			}, (function (stream) {
+			}, function (stream) {
 				// Initialize Web Audio
 				try {
 					window.AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -365,7 +366,7 @@ App.Content.Game = React.createClass({
 				this.volume.connect(this.analyser);
 
 				dispatcher.dispatch({ type: 'goto', step: 'fade2' });
-			}).bind(this), function (err) {
+			}.bind(this), function (err) {
 				alert('You either don\'t have microphone or blocked access to it :(');
 				dispatcher.dispatch({ type: 'goto', step: 'mainpage' });
 				return;
@@ -474,9 +475,9 @@ App.Content.Game = React.createClass({
 				case STATE_LOSE:
 					if (video.currentTime >= 32.3) {
 						video.pause();
-						window.setTimeout((function () {
+						window.setTimeout(function () {
 							video.currentTime = 0;
-						}).bind(this), 1000);
+						}.bind(this), 1000);
 						dispatcher.dispatch({ type: 'goto', step: 'lose' });
 						this.setState({ game: STATE_IDLE });
 					}
@@ -920,13 +921,13 @@ App.LoadingScreen = React.createClass({
 		};
 	},
 	componentDidMount: function componentDidMount() {
-		this.listenerID = dispatcher.register((function (payload) {
+		this.listenerID = dispatcher.register(function (payload) {
 			switch (payload.type) {
 				case 'videoLoadProgress':
 					this.setState({ progress: payload.progress });
 					break;
 			}
-		}).bind(this));
+		}.bind(this));
 	},
 	componentDidUpdate: function componentDidUpdate() {
 		var state = this.state.state;
@@ -934,31 +935,31 @@ App.LoadingScreen = React.createClass({
 		switch (state) {
 			case 0:
 				if (this.props.loaded >= 2) {
-					setTimeout((function () {
+					setTimeout(function () {
 						this.setState({ state: 1 });
-					}).bind(this), 2000);
+					}.bind(this), 2000);
 				}
 				break;
 			case 1:
-				setTimeout((function () {
+				setTimeout(function () {
 					this.setState({ state: 2 });
-				}).bind(this), 1000);
+				}.bind(this), 1000);
 				break;
 			case 2:
-				setTimeout((function () {
+				setTimeout(function () {
 					this.setState({ state: 3 });
-				}).bind(this), 1000);
+				}.bind(this), 1000);
 				break;
 			case 3:
-				setTimeout((function () {
+				setTimeout(function () {
 					this.setState({ state: 4 });
-				}).bind(this), 3000);
+				}.bind(this), 3000);
 				break;
 			case 4:
-				setTimeout((function () {
+				setTimeout(function () {
 					dispatcher.dispatch({ type: 'copyLoaded' });
 					this.setState({ state: 5 });
-				}).bind(this), 1000);
+				}.bind(this), 1000);
 		}
 	},
 	componentWillUnmount: function componentWillUnmount() {
