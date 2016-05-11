@@ -10,9 +10,13 @@ var update = require('react-addons-update');
 var cx = require('classnames');
 var dispatcher = new Flux.Dispatcher();
 
-var video = undefined;
-var gameAudio = undefined;
+var video = void 0;
+var gameAudio = void 0;
 var sensitivity = 0;
+var sensitivityOffset = function () {
+	var item = localStorage.getItem('sensitivityOffset');
+	return item ? parseFloat(item) : 0;
+}();
 
 var STATE_IDLE = 0,
     STATE_BEGINNING = 1,
@@ -31,7 +35,8 @@ var App = React.createClass({
 			React.createElement(App.Audio, _extends({ ref: 'audio' }, this.state)),
 			React.createElement(App.Content, _extends({ ref: 'content' }, this.state, { fadeAudio: this.fadeAudio })),
 			React.createElement(App.Overlay, _extends({ ref: 'overlay' }, this.state)),
-			React.createElement(App.LoadingScreen, { loaded: loaded })
+			React.createElement(App.LoadingScreen, { loaded: loaded }),
+			React.createElement(App.Settings, null)
 		);
 	},
 	getInitialState: function getInitialState() {
@@ -278,8 +283,8 @@ App.Content.Game = React.createClass({
 			React.createElement(
 				'video',
 				{ ref: 'video', className: 'container game-video', preload: '', muted: !this.props.audio, volume: 0.1 },
-				React.createElement('source', { src: 'videos/video.ogv', type: 'video/ogg' }),
-				React.createElement('source', { src: 'videos/video.mp4', type: 'video/mp4' })
+				React.createElement('source', { src: 'videos/video.mp4', type: 'video/mp4' }),
+				React.createElement('source', { src: 'videos/video.ogv', type: 'video/ogg' })
 			),
 			React.createElement(
 				'div',
@@ -423,7 +428,7 @@ App.Content.Game = React.createClass({
 					}
 
 					var screams = this.state.screams;
-					if (avg > sensitivity + 0.0365) {
+					if (avg > sensitivity + 0.0365 + sensitivityOffset * 0.1) {
 						if (avg != this.prevAvg) {
 							video.pause();
 							video.playbackRate = 0;
@@ -881,7 +886,7 @@ App.LoadingScreen = React.createClass({
 	displayName: 'LoadingScreen',
 
 	render: function render() {
-		var elem = undefined;
+		var elem = void 0;
 
 		switch (this.state.state) {
 			case 0:
@@ -967,6 +972,54 @@ App.LoadingScreen = React.createClass({
 	}
 });
 
+App.Settings = React.createClass({
+	displayName: 'Settings',
+
+	render: function render() {
+		var hidden = this.state.hidden;
+
+		return React.createElement(
+			'div',
+			{ className: cx('settings flex one container justify-center align-center', hidden && 'settings--hidden') },
+			React.createElement(
+				'div',
+				null,
+				React.createElement(
+					'label',
+					{ htmlFor: 'sensitivityOffset' },
+					'Volume Threshold ',
+					React.createElement('br', null),
+					React.createElement('input', { id: 'sensitivityOffset', ref: 'sensitivityOffset', type: 'range', min: '0', max: '100', defaultValue: '0', onChange: this.onSensitivityOffsetChanged, i: true })
+				)
+			)
+		);
+	},
+	getInitialState: function getInitialState() {
+		return {
+			hidden: true
+		};
+	},
+	componentDidMount: function componentDidMount() {
+		this.refs.sensitivityOffset.value = Math.round(sensitivityOffset * 100);
+
+		this.dispatcherID = dispatcher.register(function (payload) {
+			switch (payload.type) {
+				case 'toggleSettings':
+					var hidden = this.state.hidden;
+					this.setState({ hidden: !hidden });
+					break;
+			}
+		}.bind(this));
+	},
+	componentWillUnmount: function componentWillUnmount() {
+		dispatcher.unregister(this.dispatcherID);
+	},
+	onSensitivityOffsetChanged: function onSensitivityOffsetChanged(event) {
+		sensitivityOffset = event.target.value * 0.01;
+		localStorage.setItem('sensitivityOffset', sensitivityOffset);
+	}
+});
+
 var Unsupported = React.createClass({
 	displayName: 'Unsupported',
 
@@ -1000,6 +1053,12 @@ if (hasGetUserMedia()) {
 	window.addEventListener('keyup', function (event) {
 		event.preventDefault();
 		event.stopPropagation();
+
+		switch (event.keyCode) {
+			case 192:
+				dispatcher.dispatch({ type: 'toggleSettings' });
+				break;
+		}
 	});
 
 	ReactDOM.render(React.createElement(App, null), document.getElementById('root'));

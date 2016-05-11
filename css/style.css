@@ -555,3 +555,12 @@ h1, h2, h3, h4, h5, h6, p, a, div, span, label, input, button {
 .blacksheeplive:hover {
 	background: url(../images/blacksheeplive_hover.png) center / contain no-repeat;
 }
+
+.settings {
+    background: black;
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.settings--hidden {
+    display: none;
+}

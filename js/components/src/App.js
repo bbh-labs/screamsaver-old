@@ -11,6 +11,10 @@ let dispatcher = new Flux.Dispatcher();
 let video;
 let gameAudio;
 let sensitivity = 0;
+let sensitivityOffset = (function() {
+    let item = localStorage.getItem('sensitivityOffset');
+    return item ? parseFloat(item) : 0;
+})();
 
 let STATE_IDLE = 0,
     STATE_BEGINNING = 1,
@@ -27,6 +31,7 @@ let App = React.createClass({
 				<App.Content ref='content' {...this.state} fadeAudio={this.fadeAudio} />
 				<App.Overlay ref='overlay' {...this.state} />
 				<App.LoadingScreen loaded={loaded} />
+                <App.Settings />
 			</div>
 		)
 	},
@@ -243,8 +248,8 @@ App.Content.Game = React.createClass({
 		return (
 			<div className={cx('game container', this.props.step == 'game' && 'game--active')}>
 				<video ref='video' className='container game-video' preload='' muted={!this.props.audio} volume={0.1}>
-					<source src='videos/video.ogv' type='video/ogg' />
 					<source src='videos/video.mp4' type='video/mp4' />
+					<source src='videos/video.ogv' type='video/ogg' />
 				</video>
 				<div className={cx('game-scream-now flex one container align-start', showScreamNow && 'game-scream-now--active')}>
 					<img className='game-scream-now-image' src='images/scream_now.gif' width='100px' />
@@ -385,7 +390,7 @@ App.Content.Game = React.createClass({
 				}
 
 				let screams = this.state.screams;
-				if (avg > sensitivity + 0.0365) {
+				if (avg > sensitivity + 0.0365 + sensitivityOffset * 0.1) {
 					if (avg != this.prevAvg) {
 						video.pause();
 						video.playbackRate = 0;
@@ -723,6 +728,46 @@ App.LoadingScreen = React.createClass({
 	},
 });
 
+App.Settings = React.createClass({
+    render: function() {
+        let hidden = this.state.hidden;
+
+        return (
+            <div className={cx('settings flex one container justify-center align-center', hidden && 'settings--hidden')}>
+                <div>
+                    <label htmlFor='sensitivityOffset'>Volume Threshold <br/>
+                        <input id='sensitivityOffset' ref='sensitivityOffset' type='range' min='0' max='100' defaultValue='0' onChange={ this.onSensitivityOffsetChanged } i/>
+                    </label>
+                </div>
+            </div>
+        )
+    },
+    getInitialState: function() {
+        return {
+            hidden: true,
+        }
+    },
+    componentDidMount: function() {
+        this.refs.sensitivityOffset.value = Math.round(sensitivityOffset * 100);
+
+        this.dispatcherID = dispatcher.register(function(payload) {
+            switch (payload.type) {
+            case 'toggleSettings':
+                let hidden = this.state.hidden;
+                this.setState({ hidden: !hidden });
+                break;
+            }
+        }.bind(this));
+    },
+    componentWillUnmount: function() {
+        dispatcher.unregister(this.dispatcherID);
+    },
+    onSensitivityOffsetChanged: function(event) {
+        sensitivityOffset = event.target.value * 0.01;
+        localStorage.setItem('sensitivityOffset', sensitivityOffset);
+    },
+});
+
 let Unsupported = React.createClass({
 	render: function() {
 		return (
@@ -752,6 +797,12 @@ if (hasGetUserMedia()) {
 	window.addEventListener('keyup', function(event) {
 		event.preventDefault();
 		event.stopPropagation();
+
+        switch (event.keyCode) {
+        case 192:
+            dispatcher.dispatch({ type: 'toggleSettings' });
+            break;
+        }
 	});
 
 	ReactDOM.render(<App />, document.getElementById('root'));
